@@ -1,4 +1,4 @@
-package orm
+package gosql
 
 import (
 	"database/sql"
