@@ -12,13 +12,23 @@ import (
 
 // DB .
 type DB struct {
-	db *sql.DB
+	db  *sql.DB
+	log bool
 }
 
 // Conn .
 func Conn(user string, pass string, host string, db string) (*DB, error) {
 	d, err := sql.Open("mysql", fmt.Sprintf("%s:%s@%s/%s", user, pass, host, db))
-	return &DB{d}, err
+	return &DB{d, false}, err
+}
+
+// Log .
+func (db *DB) Log(is bool) {
+	if is {
+		db.log = true
+	} else {
+		db.log = false
+	}
 }
 
 // MustPrepare .

@@ -18,3 +18,7 @@ func getArgsIDLast(m *model, v reflect.Value, obj interface{}) []interface{} {
 	args[m.fieldCount-1] = v.Field(0).Interface()
 	return args
 }
+
+func getIDArg(v reflect.Value) interface{} {
+	return v.Field(0).Interface()
+}
