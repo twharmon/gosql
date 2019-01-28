@@ -65,9 +65,6 @@ func MustPrepare(ptrs ...interface{}) error {
 		m.setInsertQuery()
 		m.setUpdateQuery()
 		m.setDeleteQuery()
-		fmt.Println(m.insertQuery)
-		fmt.Println(m.updateQuery)
-		fmt.Println(m.deleteQuery)
 	}
 
 	return nil
