@@ -1,4 +1,4 @@
-package gosql
+package bench
 
 import (
 	"database/sql"
@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/jinzhu/gorm"
+	"github.com/twharmon/gosql"
 )
 
 // User .
@@ -16,7 +17,7 @@ type User struct {
 	Active bool   `json:"active"`
 }
 
-var dbGosql *DB
+var dbGosql *gosql.DB
 var dbPlain *sql.DB
 var dbGorm *gorm.DB
 
@@ -45,11 +46,11 @@ func init() {
 	}
 	dbGorm.SingularTable(true)
 
-	err = MustPrepare(&User{})
+	err = gosql.MustPrepare(&User{})
 	if err != nil {
 		log.Fatalln(err)
 	}
-	dbGosql, err = Conn(
+	dbGosql, err = gosql.Conn(
 		"root",
 		"",
 		"",

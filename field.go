@@ -40,7 +40,8 @@ func isOneToMany(src *model, s reflect.StructField) bool {
 
 	is := false
 	for i := 0; i < tar.typ.NumField(); i++ {
-		if strings.HasSuffix(tar.typ.Field(i).Type.String(), src.name) {
+		typ := tar.typ.Field(i).Type.String()
+		if strings.HasSuffix(typ, src.name) && strings.HasPrefix(typ, "*") {
 			is = true
 		}
 	}
@@ -48,7 +49,7 @@ func isOneToMany(src *model, s reflect.StructField) bool {
 }
 
 func isManyToOne(src *model, s reflect.StructField) bool {
-	if s.Type.Kind() != reflect.Struct {
+	if s.Type.Kind() != reflect.Ptr {
 		return false
 	}
 	tarFullName := s.Type.String()
@@ -60,15 +61,12 @@ func isManyToOne(src *model, s reflect.StructField) bool {
 
 	is := false
 	for i := 0; i < tar.typ.NumField(); i++ {
-		if strings.HasSuffix(tar.typ.Field(i).Type.String(), src.name) {
+		typ := tar.typ.Field(i).Type.String()
+		if strings.HasSuffix(typ, src.name) && strings.HasPrefix(typ, "[]*") {
 			is = true
 		}
 	}
 	return is
-}
-
-func isOneToOne(src *model, s reflect.StructField) bool {
-	return false
 }
 
 func isManyToMany(src *model, s reflect.StructField) bool {

@@ -10,7 +10,7 @@ type model struct {
 	name        string
 	table       string
 	typ         reflect.Type
-	fields      []reflect.StructField
+	fields      []string
 	fieldCount  int
 	oneToManys  []reflect.StructField
 	manyToOnes  []reflect.StructField
@@ -20,6 +20,45 @@ type model struct {
 	updateQuery string
 	deleteQuery string
 }
+
+/*
+
+type Post struct {
+	ID         uint64      `json:"id"`
+	Comments   []*Comment  `json:"comments" foreign:"post_id"`
+}
+
+type Comment struct {
+	ID         uint64      `json:"id"`
+	Post	   *Post       `json:"post"`
+}
+
+// Post -> Comment
+type oneToMany struct {
+	field    reflect.StructField 	  // Comments []*Comment
+}
+
+// Comment -> Post
+type manyToOne struct {
+	field    reflect.StructField 	  // Post *Post
+	column   string 			  	  // "post_id"
+}
+
+// Post -> Tag
+type manyToMany struct {
+	field    reflect.StructField 	  // Tags []*Tag
+	table    string 				  // "post_tag"
+	column   string					  // "tag_id"
+}
+
+// Tag -> Post
+type manyToMany struct {
+	field    reflect.StructField      // Posts []*Post
+	table    string                   // "post_tag"
+	column   string					  // "post_id"
+}
+
+*/
 
 type modelMap map[string]*model
 
@@ -36,7 +75,7 @@ func (m *model) setInsertQuery() {
 	query.WriteString(m.table)
 	query.WriteString(" (")
 	for i := 1; i < m.fieldCount; i++ {
-		query.WriteString(strings.ToLower(m.fields[i].Name))
+		query.WriteString(m.fields[i])
 		values.WriteString("?")
 		if i == m.fieldCount-1 {
 			query.WriteString(") ")
@@ -57,7 +96,7 @@ func (m *model) setUpdateQuery() {
 	query.WriteString(m.table)
 	query.WriteString(" set ")
 	for i := 1; i < m.fieldCount; i++ {
-		query.WriteString(strings.ToLower(m.fields[i].Name))
+		query.WriteString(m.fields[i])
 		query.WriteString(" = ?")
 		if i < m.fieldCount-1 {
 			query.WriteString(", ")
@@ -86,5 +125,24 @@ func (m *model) mustBeValid() error {
 	if idField.Type.Kind() != reflect.Uint && idField.Type.Kind() != reflect.Uint64 {
 		return fmt.Errorf("%s.ID must have type uint or uint64", m.name)
 	}
+	// todo: make sure order after id is fields... then relatives...
 	return nil
+}
+
+func (m *model) getFieldIndexByName(name string) int {
+	for i, f := range m.fields {
+		if f == name {
+			return i
+		}
+	}
+	return -1
+}
+
+func (m *model) getManyToOneColumnByType(typ string) string {
+	for _, mto := range m.manyToOnes {
+		if strings.HasSuffix(mto.Type.String(), typ) {
+			return strings.ToLower(mto.Name) + "_id"
+		}
+	}
+	return ""
 }

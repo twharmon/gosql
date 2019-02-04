@@ -40,7 +40,7 @@ func MustPrepare(ptrs ...interface{}) error {
 			if !isField(m.typ.Field(i)) {
 				continue
 			}
-			m.fields = append(m.fields, m.typ.Field(i))
+			m.fields = append(m.fields, strings.ToLower(m.typ.Field(i).Name))
 		}
 		m.fieldCount = len(m.fields)
 		models[m.name] = m
@@ -53,8 +53,6 @@ func MustPrepare(ptrs ...interface{}) error {
 				m.oneToManys = append(m.oneToManys, f)
 			} else if isManyToOne(m, f) {
 				m.manyToOnes = append(m.manyToOnes, f)
-			} else if isOneToOne(m, f) {
-				m.oneToOnes = append(m.oneToOnes, f)
 			} else if isManyToMany(m, f) {
 				m.manyToManys = append(m.manyToManys, f)
 			}
