@@ -11,7 +11,6 @@ func BenchmarkSelectManyGOSQL(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		err := dbGosql.
 			Select("*").
-			Where("id < ?", 100).
 			Limit(1000).
 			To(&users)
 		if err != nil {
@@ -24,7 +23,6 @@ func BenchmarkSelectManyGORM(b *testing.B) {
 	var users []*User
 	for i := 0; i < b.N; i++ {
 		dbGorm.
-			Where("id < ?", 100).
 			Limit(1000).
 			Find(&users)
 	}
@@ -32,15 +30,15 @@ func BenchmarkSelectManyGORM(b *testing.B) {
 
 func BenchmarkSelectManyPlain(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := plainSelectMany("id < ?", 100, 1000)
+		_, err := plainSelectMany(1000)
 		if err != nil {
 			log.Fatalln(err)
 		}
 	}
 }
 
-func plainSelectMany(where string, id int, limit int) ([]*User, error) {
-	rows, err := dbPlain.Query("select * from user where "+where+" limit "+strconv.Itoa(limit), id)
+func plainSelectMany(limit int) ([]*User, error) {
+	rows, err := dbPlain.Query("select * from user limit " + strconv.Itoa(limit))
 	if err != nil {
 		return nil, err
 	}

@@ -113,7 +113,6 @@ func (qb *QueryBuilder) makeQuery(t reflect.Type) {
 	}
 	qb.query.WriteString(" from ")
 	qb.query.WriteString(m.table)
-
 	if qb.where != "" {
 		qb.query.WriteString(" where ")
 		qb.query.WriteString(qb.where)

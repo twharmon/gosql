@@ -82,7 +82,6 @@ func (m *model) mustBeValid() error {
 	if idField.Type.Kind() != reflect.Uint && idField.Type.Kind() != reflect.Uint64 {
 		return fmt.Errorf("%s.ID must have type uint or uint64", m.name)
 	}
-	// todo: make sure order after id is fields... then relatives...
 	return nil
 }
 
