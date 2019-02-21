@@ -2,6 +2,7 @@ package gosql
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -14,6 +15,9 @@ import (
 type DB struct {
 	db *sql.DB
 }
+
+// ErrNotFound .
+var ErrNotFound = errors.New("no result found")
 
 // Conn .
 func Conn(user string, pass string, host string, db string) (*DB, error) {
@@ -44,19 +48,6 @@ func MustPrepare(ptrs ...interface{}) error {
 		}
 		m.fieldCount = len(m.fields)
 		models[m.name] = m
-	}
-
-	for _, m := range models {
-		for i := 0; i < m.typ.NumField(); i++ {
-			f := m.typ.Field(i)
-			if isOneToMany(m, f) {
-				m.oneToManys = append(m.oneToManys, f)
-			} else if isManyToOne(m, f) {
-				m.manyToOnes = append(m.manyToOnes, f)
-			} else if isManyToMany(m, f) {
-				m.manyToManys = append(m.manyToManys, f)
-			}
-		}
 	}
 
 	for _, m := range models {

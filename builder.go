@@ -1,6 +1,7 @@
 package gosql
 
 import (
+	"database/sql"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -18,7 +19,6 @@ type QueryBuilder struct {
 	fields []string
 	where  string
 	args   []interface{}
-	joins  []*join
 	limit  uint64
 	query  strings.Builder
 }
@@ -46,15 +46,6 @@ func (qb *QueryBuilder) Limit(limit uint64) *QueryBuilder {
 	return qb
 }
 
-// Load .
-func (qb *QueryBuilder) Load(relative interface{}, fields ...string) *QueryBuilder {
-	j := new(join)
-	j.fields = fields
-	j.relative = relative
-	qb.joins = append(qb.joins, j)
-	return qb
-}
-
 // To .
 func (qb *QueryBuilder) To(out interface{}) error {
 	t := reflect.TypeOf(out)
@@ -78,24 +69,10 @@ func (qb *QueryBuilder) toOne(t reflect.Type, out interface{}) error {
 	m := models[t.Name()]
 	err := row.Scan(qb.getDests(m, reflect.ValueOf(out).Elem())...)
 	if err != nil {
-		return err
-	}
-	for _, j := range qb.joins {
-		for _, otm := range m.oneToManys {
-			relativeName := strings.Split(otm.Type.String(), ".")[1]
-			manyName := strings.Split(reflect.TypeOf(j.relative).String(), ".")[1]
-			if relativeName == manyName {
-				r := models[relativeName]
-				mtoColName := r.getManyToOneColumnByType(t.Name())
-				if err := qb.db.Select(j.fields...).
-					Where(mtoColName+" = ?", reflect.Indirect(reflect.ValueOf(out)).FieldByName("ID").Interface()).
-					To(j.relative); err != nil {
-					return err
-				}
-				reflect.Indirect(reflect.ValueOf(out)).FieldByName(otm.Name).Set(reflect.ValueOf(j.relative).Elem())
-				break
-			}
+		if err == sql.ErrNoRows {
+			return ErrNotFound
 		}
+		return err
 	}
 	return nil
 }
@@ -122,6 +99,7 @@ func (qb *QueryBuilder) toMany(outs interface{}) error {
 		}
 		newOuts = reflect.Append(newOuts, newOut)
 	}
+
 	v.Set(newOuts)
 	return nil
 }
@@ -152,8 +130,6 @@ func (qb *QueryBuilder) makeQuery(t reflect.Type) {
 		qb.query.WriteString(" limit ")
 		qb.query.WriteString(strconv.FormatUint(qb.limit, 10))
 	}
-
-	fmt.Println(qb.query.String())
 }
 
 func (qb *QueryBuilder) getDests(m *model, v reflect.Value) []interface{} {
