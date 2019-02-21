@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"sort"
 	"strings"
 
 	// mysql driver
@@ -49,34 +48,6 @@ func MustPrepare(ptrs ...interface{}) error {
 		}
 		m.fieldCount = len(m.fields)
 		models[m.name] = m
-	}
-
-	for _, m := range models {
-		for i := 0; i < m.typ.NumField(); i++ {
-			f := m.typ.Field(i)
-			if m.isOneToMany(f) {
-				otm := new(oneToMany)
-				otm.typStr = f.Type.String()
-				otm.field = f
-				m.oneToManys = append(m.oneToManys, otm)
-			} else if m.isManyToOne(f) {
-				mto := new(manyToOne)
-				mto.typStr = f.Type.String()
-				mto.field = f
-				mto.column = strings.ToLower(f.Name) + "_id"
-				m.manyToOnes = append(m.manyToOnes, mto)
-			} else if m.isManyToMany(f) {
-				mtm := new(manyToMany)
-				mtm.typStr = f.Type.String()
-				mtm.field = f
-				fTableName := strings.ToLower(strings.Split(f.Type.String(), ".")[1])
-				tables := []string{fTableName, strings.ToLower(m.table)}
-				sort.Strings(tables)
-				mtm.table = tables[0] + "_" + tables[1]
-				mtm.column = fTableName + "_id"
-				m.manyToManys = append(m.manyToManys, mtm)
-			}
-		}
 	}
 
 	for _, m := range models {

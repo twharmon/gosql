@@ -12,9 +12,6 @@ type model struct {
 	typ         reflect.Type
 	fields      []string
 	fieldCount  int
-	oneToManys  []*oneToMany
-	manyToOnes  []*manyToOne
-	manyToManys []*manyToMany
 	insertQuery string
 	updateQuery string
 	deleteQuery string

@@ -19,7 +19,6 @@ type QueryBuilder struct {
 	fields []string
 	where  string
 	args   []interface{}
-	joins  []*join
 	limit  uint64
 	query  strings.Builder
 }
@@ -44,15 +43,6 @@ func (qb *QueryBuilder) Where(where string, args ...interface{}) *QueryBuilder {
 // Limit .
 func (qb *QueryBuilder) Limit(limit uint64) *QueryBuilder {
 	qb.limit = limit
-	return qb
-}
-
-// Load .
-func (qb *QueryBuilder) Load(relative interface{}, fields ...string) *QueryBuilder {
-	j := new(join)
-	j.fields = fields
-	j.relative = relative
-	qb.joins = append(qb.joins, j)
 	return qb
 }
 
@@ -84,19 +74,6 @@ func (qb *QueryBuilder) toOne(t reflect.Type, out interface{}) error {
 		}
 		return err
 	}
-	for _, j := range qb.joins {
-		relT := reflect.TypeOf(j.relative)
-		otm, mto := m.getOneToManyPairByType(relT)
-		if otm != nil {
-			err := qb.db.Select(j.fields...).
-				Where(mto.column+" = ?", reflect.Indirect(reflect.ValueOf(out)).Field(0).Interface()).
-				To(j.relative)
-			if err != nil {
-				return err
-			}
-			reflect.Indirect(reflect.ValueOf(out)).FieldByName(otm.field.Name).Set(reflect.ValueOf(j.relative).Elem())
-		}
-	}
 	return nil
 }
 
@@ -120,21 +97,6 @@ func (qb *QueryBuilder) toMany(outs interface{}) error {
 		if err := rows.Scan(qb.getDests(m, newOut.Elem())...); err != nil {
 			return err
 		}
-
-		for _, j := range qb.joins {
-			relT := reflect.TypeOf(j.relative)
-			otm, mto := m.getOneToManyPairByType(relT)
-			if otm != nil {
-				err := qb.db.Select(j.fields...).
-					Where(mto.column+" = ?", reflect.Indirect(newOut).Field(0).Interface()).
-					To(j.relative)
-				if err != nil {
-					return err
-				}
-				reflect.Indirect(newOut).FieldByName(otm.field.Name).Set(reflect.ValueOf(j.relative).Elem())
-			}
-		}
-
 		newOuts = reflect.Append(newOuts, newOut)
 	}
 
@@ -168,8 +130,6 @@ func (qb *QueryBuilder) makeQuery(t reflect.Type) {
 		qb.query.WriteString(" limit ")
 		qb.query.WriteString(strconv.FormatUint(qb.limit, 10))
 	}
-
-	fmt.Println(qb.query.String())
 }
 
 func (qb *QueryBuilder) getDests(m *model, v reflect.Value) []interface{} {
