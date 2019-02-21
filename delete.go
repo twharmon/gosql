@@ -13,6 +13,6 @@ func (db *DB) Delete(obj interface{}) error {
 	}
 	v := reflect.ValueOf(obj).Elem()
 	m := models[t.Elem().Name()]
-	_, err := db.db.Exec(m.deleteQuery, getIDArg(v))
+	_, err := db.db.Exec(m.deleteQuery, m.getIDArg(v))
 	return err
 }

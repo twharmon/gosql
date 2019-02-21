@@ -13,7 +13,7 @@ func (db *DB) Insert(obj interface{}) error {
 	}
 	v := reflect.ValueOf(obj).Elem()
 	m := models[t.Elem().Name()]
-	res, err := db.db.Exec(m.insertQuery, getArgs(m, v)...)
+	res, err := db.db.Exec(m.insertQuery, m.getArgs(v)...)
 	if err != nil {
 		return err
 	}

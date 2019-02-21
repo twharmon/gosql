@@ -95,16 +95,7 @@ func (m *model) getFieldIndexByName(name string) int {
 	return -1
 }
 
-func (m *model) getManyToOneColumnByType(typ string) string {
-	for _, mto := range m.manyToOnes {
-		if strings.HasSuffix(mto.Type.String(), typ) {
-			return strings.ToLower(mto.Name) + "_id"
-		}
-	}
-	return ""
-}
-
-func getArgs(m *model, v reflect.Value) []interface{} {
+func (m *model) getArgs(v reflect.Value) []interface{} {
 	args := make([]interface{}, m.fieldCount-1)
 	for i := 1; i < m.fieldCount; i++ {
 		args[i-1] = v.Field(i).Interface()
@@ -112,7 +103,7 @@ func getArgs(m *model, v reflect.Value) []interface{} {
 	return args
 }
 
-func getArgsIDLast(m *model, v reflect.Value) []interface{} {
+func (m *model) getArgsIDLast(v reflect.Value) []interface{} {
 	args := make([]interface{}, m.fieldCount)
 	for i := 1; i < m.fieldCount; i++ {
 		args[i-1] = v.Field(i).Interface()
@@ -121,6 +112,6 @@ func getArgsIDLast(m *model, v reflect.Value) []interface{} {
 	return args
 }
 
-func getIDArg(v reflect.Value) interface{} {
+func (m *model) getIDArg(v reflect.Value) interface{} {
 	return v.Field(0).Interface()
 }
