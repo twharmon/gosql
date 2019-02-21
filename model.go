@@ -12,53 +12,13 @@ type model struct {
 	typ         reflect.Type
 	fields      []string
 	fieldCount  int
-	oneToManys  []reflect.StructField
-	manyToOnes  []reflect.StructField
-	manyToManys []reflect.StructField
-	oneToOnes   []reflect.StructField
+	oneToManys  []*oneToMany
+	manyToOnes  []*manyToOne
+	manyToManys []*manyToMany
 	insertQuery string
 	updateQuery string
 	deleteQuery string
 }
-
-/*
-
-type Post struct {
-	ID         uint64      `json:"id"`
-	Comments   []*Comment  `json:"comments" foreign:"post_id"`
-}
-
-type Comment struct {
-	ID         uint64      `json:"id"`
-	Post	   *Post       `json:"post"`
-}
-
-// Post -> Comment
-type oneToMany struct {
-	field    reflect.StructField 	  // Comments []*Comment
-}
-
-// Comment -> Post
-type manyToOne struct {
-	field    reflect.StructField 	  // Post *Post
-	column   string 			  	  // "post_id"
-}
-
-// Post -> Tag
-type manyToMany struct {
-	field    reflect.StructField 	  // Tags []*Tag
-	table    string 				  // "post_tag"
-	column   string					  // "tag_id"
-}
-
-// Tag -> Post
-type manyToMany struct {
-	field    reflect.StructField      // Posts []*Post
-	table    string                   // "post_tag"
-	column   string					  // "post_id"
-}
-
-*/
 
 type modelMap map[string]*model
 
@@ -136,13 +96,4 @@ func (m *model) getFieldIndexByName(name string) int {
 		}
 	}
 	return -1
-}
-
-func (m *model) getManyToOneColumnByType(typ string) string {
-	for _, mto := range m.manyToOnes {
-		if strings.HasSuffix(mto.Type.String(), typ) {
-			return strings.ToLower(mto.Name) + "_id"
-		}
-	}
-	return ""
 }

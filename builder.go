@@ -1,6 +1,7 @@
 package gosql
 
 import (
+	"database/sql"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -78,23 +79,22 @@ func (qb *QueryBuilder) toOne(t reflect.Type, out interface{}) error {
 	m := models[t.Name()]
 	err := row.Scan(qb.getDests(m, reflect.ValueOf(out).Elem())...)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return ErrNotFound
+		}
 		return err
 	}
 	for _, j := range qb.joins {
-		for _, otm := range m.oneToManys {
-			relativeName := strings.Split(otm.Type.String(), ".")[1]
-			manyName := strings.Split(reflect.TypeOf(j.relative).String(), ".")[1]
-			if relativeName == manyName {
-				r := models[relativeName]
-				mtoColName := r.getManyToOneColumnByType(t.Name())
-				if err := qb.db.Select(j.fields...).
-					Where(mtoColName+" = ?", reflect.Indirect(reflect.ValueOf(out)).FieldByName("ID").Interface()).
-					To(j.relative); err != nil {
-					return err
-				}
-				reflect.Indirect(reflect.ValueOf(out)).FieldByName(otm.Name).Set(reflect.ValueOf(j.relative).Elem())
-				break
+		relT := reflect.TypeOf(j.relative)
+		otm, mto := m.getOneToManyPairByType(relT)
+		if otm != nil {
+			err := qb.db.Select(j.fields...).
+				Where(mto.column+" = ?", reflect.Indirect(reflect.ValueOf(out)).Field(0).Interface()).
+				To(j.relative)
+			if err != nil {
+				return err
 			}
+			reflect.Indirect(reflect.ValueOf(out)).FieldByName(otm.field.Name).Set(reflect.ValueOf(j.relative).Elem())
 		}
 	}
 	return nil
@@ -120,8 +120,24 @@ func (qb *QueryBuilder) toMany(outs interface{}) error {
 		if err := rows.Scan(qb.getDests(m, newOut.Elem())...); err != nil {
 			return err
 		}
+
+		for _, j := range qb.joins {
+			relT := reflect.TypeOf(j.relative)
+			otm, mto := m.getOneToManyPairByType(relT)
+			if otm != nil {
+				err := qb.db.Select(j.fields...).
+					Where(mto.column+" = ?", reflect.Indirect(newOut).Field(0).Interface()).
+					To(j.relative)
+				if err != nil {
+					return err
+				}
+				reflect.Indirect(newOut).FieldByName(otm.field.Name).Set(reflect.ValueOf(j.relative).Elem())
+			}
+		}
+
 		newOuts = reflect.Append(newOuts, newOut)
 	}
+
 	v.Set(newOuts)
 	return nil
 }
