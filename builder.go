@@ -76,28 +76,7 @@ func (qb *QueryBuilder) toOne(t reflect.Type, out interface{}) error {
 	qb.makeQuery(t)
 	row := qb.db.db.QueryRow(qb.query.String(), qb.args...)
 	m := models[t.Name()]
-	err := row.Scan(qb.getDests(m, reflect.ValueOf(out).Elem())...)
-	if err != nil {
-		return err
-	}
-	for _, j := range qb.joins {
-		for _, otm := range m.oneToManys {
-			relativeName := strings.Split(otm.Type.String(), ".")[1]
-			manyName := strings.Split(reflect.TypeOf(j.relative).String(), ".")[1]
-			if relativeName == manyName {
-				r := models[relativeName]
-				mtoColName := r.getManyToOneColumnByType(t.Name())
-				if err := qb.db.Select(j.fields...).
-					Where(mtoColName+" = ?", reflect.Indirect(reflect.ValueOf(out)).FieldByName("ID").Interface()).
-					To(j.relative); err != nil {
-					return err
-				}
-				reflect.Indirect(reflect.ValueOf(out)).FieldByName(otm.Name).Set(reflect.ValueOf(j.relative).Elem())
-				break
-			}
-		}
-	}
-	return nil
+	return row.Scan(qb.getDests(m, reflect.ValueOf(out).Elem())...)
 }
 
 func (qb *QueryBuilder) toMany(outs interface{}) error {

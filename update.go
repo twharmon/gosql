@@ -13,6 +13,6 @@ func (db *DB) Update(obj interface{}) error {
 	}
 	v := reflect.ValueOf(obj).Elem()
 	m := models[t.Elem().Name()]
-	_, err := db.db.Exec(m.updateQuery, getArgsIDLast(m, v, obj)...)
+	_, err := db.db.Exec(m.updateQuery, getArgsIDLast(m, v)...)
 	return err
 }

@@ -2,7 +2,7 @@ package gosql
 
 import "reflect"
 
-func getArgs(m *model, v reflect.Value, obj interface{}) []interface{} {
+func getArgs(m *model, v reflect.Value) []interface{} {
 	args := make([]interface{}, m.fieldCount-1)
 	for i := 1; i < m.fieldCount; i++ {
 		args[i-1] = v.Field(i).Interface()
@@ -10,7 +10,7 @@ func getArgs(m *model, v reflect.Value, obj interface{}) []interface{} {
 	return args
 }
 
-func getArgsIDLast(m *model, v reflect.Value, obj interface{}) []interface{} {
+func getArgsIDLast(m *model, v reflect.Value) []interface{} {
 	args := make([]interface{}, m.fieldCount)
 	for i := 1; i < m.fieldCount; i++ {
 		args[i-1] = v.Field(i).Interface()

@@ -12,53 +12,10 @@ type model struct {
 	typ         reflect.Type
 	fields      []string
 	fieldCount  int
-	oneToManys  []reflect.StructField
-	manyToOnes  []reflect.StructField
-	manyToManys []reflect.StructField
-	oneToOnes   []reflect.StructField
 	insertQuery string
 	updateQuery string
 	deleteQuery string
 }
-
-/*
-
-type Post struct {
-	ID         uint64      `json:"id"`
-	Comments   []*Comment  `json:"comments" foreign:"post_id"`
-}
-
-type Comment struct {
-	ID         uint64      `json:"id"`
-	Post	   *Post       `json:"post"`
-}
-
-// Post -> Comment
-type oneToMany struct {
-	field    reflect.StructField 	  // Comments []*Comment
-}
-
-// Comment -> Post
-type manyToOne struct {
-	field    reflect.StructField 	  // Post *Post
-	column   string 			  	  // "post_id"
-}
-
-// Post -> Tag
-type manyToMany struct {
-	field    reflect.StructField 	  // Tags []*Tag
-	table    string 				  // "post_tag"
-	column   string					  // "tag_id"
-}
-
-// Tag -> Post
-type manyToMany struct {
-	field    reflect.StructField      // Posts []*Post
-	table    string                   // "post_tag"
-	column   string					  // "post_id"
-}
-
-*/
 
 type modelMap map[string]*model
 
@@ -145,4 +102,25 @@ func (m *model) getManyToOneColumnByType(typ string) string {
 		}
 	}
 	return ""
+}
+
+func getArgs(m *model, v reflect.Value) []interface{} {
+	args := make([]interface{}, m.fieldCount-1)
+	for i := 1; i < m.fieldCount; i++ {
+		args[i-1] = v.Field(i).Interface()
+	}
+	return args
+}
+
+func getArgsIDLast(m *model, v reflect.Value) []interface{} {
+	args := make([]interface{}, m.fieldCount)
+	for i := 1; i < m.fieldCount; i++ {
+		args[i-1] = v.Field(i).Interface()
+	}
+	args[m.fieldCount-1] = v.Field(0).Interface()
+	return args
+}
+
+func getIDArg(v reflect.Value) interface{} {
+	return v.Field(0).Interface()
 }
