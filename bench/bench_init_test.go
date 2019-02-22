@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/jinzhu/gorm"
 	"github.com/twharmon/gosql"
@@ -28,7 +29,7 @@ func init() {
 		"root",
 		"",
 		"",
-		"solasites",
+		os.Getenv("DB_NAME"),
 	))
 	if err != nil {
 		log.Fatalln(err)
@@ -39,7 +40,7 @@ func init() {
 		"root",
 		"",
 		"",
-		"solasites",
+		os.Getenv("DB_NAME"),
 	))
 	if err != nil {
 		log.Fatalln(err)
@@ -51,7 +52,7 @@ func init() {
 		"root",
 		"",
 		"",
-		"solasites",
+		os.Getenv("DB_NAME"),
 	)
 	if err != nil {
 		log.Fatalln(err)
