@@ -35,9 +35,7 @@ func Register(ptrs ...interface{}) {
 		m.typ = reflect.TypeOf(p).Elem()
 		m.name = m.typ.Name()
 		m.table = strings.ToLower(m.name)
-
 		m.mustBeValid()
-
 		for i := 0; i < m.typ.NumField(); i++ {
 			if !isField(m.typ.Field(i)) {
 				continue
