@@ -8,7 +8,7 @@ import (
 // Insert .
 func (db *DB) Insert(obj interface{}) error {
 	t := reflect.TypeOf(obj)
-	if !isPointer(t) {
+	if t.Kind() != reflect.Ptr {
 		return fmt.Errorf("obj must be a pointer to your model struct")
 	}
 	v := reflect.ValueOf(obj).Elem()
@@ -21,6 +21,6 @@ func (db *DB) Insert(obj interface{}) error {
 	if err != nil {
 		return err
 	}
-	v.Field(0).SetUint(uint64(id))
+	v.Field(0).SetInt(id)
 	return nil
 }

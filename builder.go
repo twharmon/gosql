@@ -48,7 +48,7 @@ func (qb *QueryBuilder) Limit(limit uint64) *QueryBuilder {
 // To .
 func (qb *QueryBuilder) To(out interface{}) error {
 	t := reflect.TypeOf(out)
-	if !isPointer(t) {
+	if t.Kind() != reflect.Ptr {
 		return fmt.Errorf("out must be a pointer")
 	}
 	e := t.Elem()
@@ -72,7 +72,7 @@ func (qb *QueryBuilder) toOne(t reflect.Type, out interface{}) error {
 func (qb *QueryBuilder) toMany(outs interface{}) error {
 	v := reflect.Indirect(reflect.ValueOf(outs))
 	t := reflect.TypeOf(outs).Elem()
-	if !isPointer(t.Elem()) {
+	if t.Elem().Kind() != reflect.Ptr {
 		return fmt.Errorf("outs must be a slice of pointers")
 	}
 	e := t.Elem().Elem()

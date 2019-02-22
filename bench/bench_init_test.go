@@ -11,7 +11,7 @@ import (
 
 // User .
 type User struct {
-	ID     uint   `json:"id"`
+	ID     int64  `json:"id"`
 	Role   string `json:"role"`
 	Email  string `json:"email"`
 	Active bool   `json:"active"`
@@ -46,10 +46,7 @@ func init() {
 	}
 	dbGorm.SingularTable(true)
 
-	err = gosql.MustPrepare(&User{})
-	if err != nil {
-		log.Fatalln(err)
-	}
+	gosql.Register(&User{})
 	dbGosql, err = gosql.Conn(
 		"root",
 		"",

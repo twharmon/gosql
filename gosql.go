@@ -25,20 +25,18 @@ func Conn(user string, pass string, host string, db string) (*DB, error) {
 	return &DB{d}, err
 }
 
-// MustPrepare .
-func MustPrepare(ptrs ...interface{}) error {
+// Register .
+func Register(ptrs ...interface{}) {
 	for _, p := range ptrs {
-		if !isPointer(reflect.TypeOf(p)) {
-			return fmt.Errorf("ptrs must be pointers to your model structs")
+		if reflect.TypeOf(p).Kind() != reflect.Ptr {
+			panic("ptrs must be pointers to your model structs")
 		}
 		m := new(model)
 		m.typ = reflect.TypeOf(p).Elem()
 		m.name = m.typ.Name()
 		m.table = strings.ToLower(m.name)
 
-		if err := m.mustBeValid(); err != nil {
-			return err
-		}
+		m.mustBeValid()
 
 		for i := 0; i < m.typ.NumField(); i++ {
 			if !isField(m.typ.Field(i)) {
@@ -55,6 +53,4 @@ func MustPrepare(ptrs ...interface{}) error {
 		m.setUpdateQuery()
 		m.setDeleteQuery()
 	}
-
-	return nil
 }

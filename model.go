@@ -71,18 +71,17 @@ func (m *model) setDeleteQuery() {
 	m.deleteQuery = query.String()
 }
 
-func (m *model) mustBeValid() error {
+func (m *model) mustBeValid() {
 	if models[m.name] != nil {
-		return fmt.Errorf("model %s found more than once", m.name)
+		panic(fmt.Sprintf("model %s found more than once", m.name))
 	}
 	idField := m.typ.Field(0)
 	if idField.Name != "ID" {
-		return fmt.Errorf("first field of %s must be ID", m.name)
+		panic(fmt.Sprintf("first field of %s must be ID", m.name))
 	}
-	if idField.Type.Kind() != reflect.Uint && idField.Type.Kind() != reflect.Uint64 {
-		return fmt.Errorf("%s.ID must have type uint or uint64", m.name)
+	if idField.Type.Kind() != reflect.Int64 {
+		panic(fmt.Sprintf("%s.ID must have type int64", m.name))
 	}
-	return nil
 }
 
 func (m *model) getFieldIndexByName(name string) int {

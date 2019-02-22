@@ -57,6 +57,6 @@ func plainInsert(u *User) error {
 	if err != nil {
 		return err
 	}
-	u.ID = uint(id)
+	u.ID = id
 	return nil
 }
