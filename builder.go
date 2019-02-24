@@ -66,6 +66,9 @@ func (qb *QueryBuilder) toOne(t reflect.Type, out interface{}) error {
 	qb.makeQuery(t)
 	row := qb.db.db.QueryRow(qb.query.String(), qb.args...)
 	m := models[t.Name()]
+	if m == nil {
+		return fmt.Errorf("you must first register %s", t.Name())
+	}
 	return row.Scan(qb.getDests(m, reflect.ValueOf(out).Elem())...)
 }
 
@@ -77,6 +80,9 @@ func (qb *QueryBuilder) toMany(outs interface{}) error {
 	}
 	e := t.Elem().Elem()
 	m := models[e.Name()]
+	if m == nil {
+		return fmt.Errorf("you must first register %s", e.Name())
+	}
 	qb.makeQuery(e)
 	rows, err := qb.db.db.Query(qb.query.String(), qb.args...)
 	if err != nil {
@@ -91,7 +97,6 @@ func (qb *QueryBuilder) toMany(outs interface{}) error {
 		}
 		newOuts = reflect.Append(newOuts, newOut)
 	}
-
 	v.Set(newOuts)
 	return nil
 }
