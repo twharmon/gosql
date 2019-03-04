@@ -113,3 +113,19 @@ func (m *model) getArgsIDLast(v reflect.Value) []interface{} {
 func (m *model) getIDArg(v reflect.Value) interface{} {
 	return v.Field(0).Interface()
 }
+
+func getModelOf(obj interface{}) (*model, error) {
+	t := reflect.TypeOf(obj)
+	if t.Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("obj must be a pointer to your model struct")
+	}
+	e := t.Elem()
+	if e.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("obj must be a pointer to your model struct")
+	}
+	m := models[e.Name()]
+	if m == nil {
+		return nil, fmt.Errorf("you must first register %s", e.Name())
+	}
+	return m, nil
+}

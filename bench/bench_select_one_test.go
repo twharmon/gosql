@@ -6,12 +6,13 @@ import (
 )
 
 func BenchmarkSelectOneGOSQL(b *testing.B) {
+	query := dbGosql.
+		Query().
+		Select("*").
+		Where("id = ?", 163387)
 	for i := 0; i < b.N; i++ {
-		user := User{}
-		err := dbGosql.
-			Select("*").
-			Where("id = ?", 1).
-			To(&user)
+		var user User
+		err := query.To(&user)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -20,14 +21,14 @@ func BenchmarkSelectOneGOSQL(b *testing.B) {
 
 func BenchmarkSelectOneGORM(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		user := User{}
-		dbGorm.Where("id = ?", 1).First(&user)
+		var user User
+		dbGorm.Where("id = ?", 163387).First(&user)
 	}
 }
 
 func BenchmarkSelectOnePlain(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := plainSelect("id = ?", 1)
+		_, err := plainSelect("id = ?", 163387)
 		if err != nil {
 			log.Fatalln(err)
 		}

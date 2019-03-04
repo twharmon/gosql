@@ -1,19 +1,14 @@
 package gosql
 
 import (
-	"fmt"
 	"reflect"
 )
 
 // Insert .
 func (db *DB) Insert(obj interface{}) error {
-	t := reflect.TypeOf(obj)
-	if t.Kind() != reflect.Ptr {
-		return fmt.Errorf("obj must be a pointer to your model struct")
-	}
-	m := models[t.Elem().Name()]
-	if m == nil {
-		return fmt.Errorf("you must first register %s", t.Elem().Name())
+	m, err := getModelOf(obj)
+	if err != nil {
+		return err
 	}
 	v := reflect.ValueOf(obj).Elem()
 	res, err := db.db.Exec(m.insertQuery, m.getArgs(v)...)

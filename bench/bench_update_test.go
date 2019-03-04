@@ -1,7 +1,6 @@
 package bench
 
 import (
-	"log"
 	"testing"
 )
 
@@ -15,7 +14,7 @@ func BenchmarkUpdateGOSQL(b *testing.B) {
 			Active: true,
 		})
 		if err != nil {
-			log.Fatalln(err)
+			b.Error(err)
 		}
 	}
 }
@@ -41,7 +40,7 @@ func BenchmarkUpdatePlain(b *testing.B) {
 			Active: true,
 		})
 		if err != nil {
-			log.Fatalln(err)
+			b.Error(err)
 		}
 	}
 }

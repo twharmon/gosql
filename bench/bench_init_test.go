@@ -46,7 +46,7 @@ func init() {
 	}
 	dbGorm.SingularTable(true)
 
-	gosql.Register(&User{})
+	gosql.Register(User{})
 	dbGosql, err = gosql.Conn(
 		"root",
 		"",

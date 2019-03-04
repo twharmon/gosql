@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 
 	// mysql driver
@@ -26,13 +27,13 @@ func Conn(user string, pass string, host string, db string) (*DB, error) {
 }
 
 // Register .
-func Register(ptrs ...interface{}) {
-	for _, p := range ptrs {
-		if reflect.TypeOf(p).Kind() != reflect.Ptr {
-			panic("ptrs must be pointers to your model structs")
+func Register(structs ...interface{}) {
+	for _, s := range structs {
+		if reflect.TypeOf(s).Kind() != reflect.Struct {
+			panic("structs must be pointers to your model structs")
 		}
 		m := new(model)
-		m.typ = reflect.TypeOf(p).Elem()
+		m.typ = reflect.TypeOf(s)
 		m.name = m.typ.Name()
 		m.table = strings.ToLower(m.name)
 		m.mustBeValid()
@@ -40,7 +41,7 @@ func Register(ptrs ...interface{}) {
 			if !isField(m.typ.Field(i)) {
 				continue
 			}
-			m.fields = append(m.fields, strings.ToLower(m.typ.Field(i).Name))
+			m.fields = append(m.fields, toSnakeCase(m.typ.Field(i).Name))
 		}
 		m.fieldCount = len(m.fields)
 		models[m.name] = m
@@ -51,4 +52,13 @@ func Register(ptrs ...interface{}) {
 		m.setUpdateQuery()
 		m.setDeleteQuery()
 	}
+}
+
+var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
+var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
+
+func toSnakeCase(str string) string {
+	snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
+	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
+	return strings.ToLower(snake)
 }

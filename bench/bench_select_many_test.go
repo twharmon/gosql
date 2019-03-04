@@ -10,6 +10,7 @@ func BenchmarkSelectManyGOSQL(b *testing.B) {
 	var users []*User
 	for i := 0; i < b.N; i++ {
 		err := dbGosql.
+			Query().
 			Select("*").
 			Limit(1000).
 			To(&users)
