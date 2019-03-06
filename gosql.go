@@ -3,7 +3,6 @@ package gosql
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"reflect"
 	"regexp"
 	"strings"
@@ -21,13 +20,7 @@ type DB struct {
 var ErrNotFound = errors.New("no result found")
 
 // Conn .
-func Conn(user string, pass string, host string, db string) (*DB, error) {
-	d, err := sql.Open("mysql", fmt.Sprintf("%s:%s@%s/%s", user, pass, host, db))
-	return &DB{d}, err
-}
-
-// ConnDB .
-func ConnDB(db *sql.DB) *DB {
+func Conn(db *sql.DB) *DB {
 	return &DB{db}
 }
 
@@ -40,7 +33,7 @@ func Register(structs ...interface{}) {
 		m := new(model)
 		m.typ = reflect.TypeOf(s)
 		m.name = m.typ.Name()
-		m.table = strings.ToLower(m.name)
+		m.table = toSnakeCase(m.name)
 		m.mustBeValid()
 		for i := 0; i < m.typ.NumField(); i++ {
 			if !isField(m.typ.Field(i)) {

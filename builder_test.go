@@ -99,6 +99,28 @@ func TestBuilderSelectOneJoin(t *testing.T) {
 	}
 }
 
+func TestBuilderSelectOneExpanded(t *testing.T) {
+	control := makeExpandedUser()
+	rows := sqlmock.NewRows([]string{"id", "role", "email", "active"})
+	rows.AddRow(control.ID, control.Role, control.Email, control.Active)
+	mock.ExpectQuery(`^select \* from expanded_user where id = \?$`).WithArgs(1).WillReturnRows(rows)
+
+	test := new(ExpandedUser)
+	if err := DB.Query().Select("*").Where("id = ?", 1).To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	if err := assertExpandedSame(control, test); err != nil {
+		t.Error(err)
+	}
+}
+
 func TestBuilderSelectManyAllFields(t *testing.T) {
 	control := makeUserSlice(3)
 	rows := sqlmock.NewRows([]string{"id", "role", "email", "active"})

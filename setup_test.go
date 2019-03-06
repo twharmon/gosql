@@ -21,6 +21,15 @@ type User struct {
 	Active bool   `json:"active"`
 }
 
+// ExpandedUser contains user information, and other fields not in db
+type ExpandedUser struct {
+	ID     int64  `json:"id"`
+	Role   string `json:"role"`
+	Email  string `json:"email"`
+	Active bool   `json:"active"`
+	Friend *User  `json:"friend"`
+}
+
 func init() {
 	var err error
 	var db *sql.DB
@@ -28,11 +37,27 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	DB = gosql.ConnDB(db)
-	gosql.Register(User{})
+	DB = gosql.Conn(db)
+	gosql.Register(User{}, ExpandedUser{})
 }
 
 func assertSame(control *User, test *User) error {
+	if control.ID != test.ID {
+		return fmt.Errorf("test did not match control: control.ID %d, test.ID %d", control.ID, test.ID)
+	}
+	if control.Role != test.Role {
+		return fmt.Errorf("test did not match control: control.Role %s, test.Role %s", control.Role, test.Role)
+	}
+	if control.Email != test.Email {
+		return fmt.Errorf("test did not match control: control.Email %s, test.Email %s", control.Email, test.Email)
+	}
+	if control.Active != test.Active {
+		return fmt.Errorf("test did not match control: control.Active %t, test.Active %t", control.Active, test.Active)
+	}
+	return nil
+}
+
+func assertExpandedSame(control *ExpandedUser, test *ExpandedUser) error {
 	if control.ID != test.ID {
 		return fmt.Errorf("test did not match control: control.ID %d, test.ID %d", control.ID, test.ID)
 	}
@@ -66,6 +91,16 @@ func makeUser() *User {
 		Role:   gofake.Word(),
 		Email:  gofake.Email(),
 		Active: gofake.Int(1) == 1,
+	}
+}
+
+func makeExpandedUser() *ExpandedUser {
+	return &ExpandedUser{
+		ID:     int64(gofake.Int(100)),
+		Role:   gofake.Word(),
+		Email:  gofake.Email(),
+		Active: gofake.Int(1) == 1,
+		Friend: makeUser(),
 	}
 }
 
