@@ -26,6 +26,11 @@ func Conn(user string, pass string, host string, db string) (*DB, error) {
 	return &DB{d}, err
 }
 
+// ConnDB .
+func ConnDB(db *sql.DB) *DB {
+	return &DB{db}
+}
+
 // Register .
 func Register(structs ...interface{}) {
 	for _, s := range structs {

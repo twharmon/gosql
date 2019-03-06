@@ -22,6 +22,7 @@ type QueryBuilder struct {
 	joins  []string
 	where  string
 	args   []interface{}
+	order  string
 	limit  uint64
 }
 
@@ -56,6 +57,12 @@ func (qb *QueryBuilder) Join(join string) *QueryBuilder {
 func (qb *QueryBuilder) Where(where string, args ...interface{}) *QueryBuilder {
 	qb.where = where
 	qb.args = args
+	return qb
+}
+
+// OrderBy .
+func (qb *QueryBuilder) OrderBy(order string) *QueryBuilder {
+	qb.order = order
 	return qb
 }
 
@@ -163,6 +170,10 @@ func (qb *QueryBuilder) string() string {
 	if qb.where != "" {
 		q.WriteString(" where ")
 		q.WriteString(qb.where)
+	}
+	if qb.order != "" {
+		q.WriteString(" order by ")
+		q.WriteString(qb.order)
 	}
 	if qb.limit > 0 {
 		q.WriteString(" limit ")
