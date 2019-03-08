@@ -21,23 +21,34 @@ type User struct {
 // you must register all structs
 gosql.Register(User{})
 
+
 // now you are ready to go
-var user User
-db.Query().Select("*").Where("id = ?", 1).To(&user)
 
-user.Name = "Gopher"
-db.Update(&user)
 
-db.Delete(&user)
-
+insert a new user
 newUser := User{
     Name: "New Gopher",
 }
 db.Insert(&newUser)
 // newUser.ID is set after inserted into database
+
+// select a user
+var user User
+db.Query().Select("*").Where("id = ?", 1).To(&user)
+
+// update the user
+user.Name = "Gopher"
+db.Update(&user)
+
+// delete the user
+db.Delete(&user)
 ```
 
 For full documentation see [godoc](https://godoc.org/github.com/twharmon/gosql).
 
 ## Contribute
 Make a pull request
+
+## Todo
+- document exported functions in comments
+- more Select capabilities, like count()

@@ -2,6 +2,7 @@ package gosql
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -11,7 +12,11 @@ import (
 const (
 	sqlActionSelect = iota
 	sqlActionDelete
+	sqlActionCountFrom
 )
+
+// ErrBadQuery .
+var ErrBadQuery = errors.New("bad query")
 
 // QueryBuilder .
 type QueryBuilder struct {
@@ -26,10 +31,33 @@ type QueryBuilder struct {
 	limit  uint64
 }
 
+// QueryBuilder2 .
+type QueryBuilder2 struct {
+	db     *DB
+	action int
+	from   string
+	joins  []string
+	where  string
+	args   []interface{}
+}
+
 // Query .
 func (db *DB) Query() *QueryBuilder {
 	qb := new(QueryBuilder)
 	qb.db = db
+	return qb
+}
+
+// Query2 .
+func (db *DB) Query2() *QueryBuilder2 {
+	qb := new(QueryBuilder2)
+	qb.db = db
+	return qb
+}
+
+// From .
+func (qb *QueryBuilder2) From(table string) *QueryBuilder2 {
+	qb.from = table
 	return qb
 }
 
@@ -40,10 +68,9 @@ func (qb *QueryBuilder) Select(fields ...string) *QueryBuilder {
 	return qb
 }
 
-// Delete .
-func (qb *QueryBuilder) Delete(from string) *QueryBuilder {
-	qb.action = sqlActionDelete
-	qb.model = &model{table: from}
+// From .
+func (qb *QueryBuilder) From(table string) *QueryBuilder {
+	qb.model = &model{table: table}
 	return qb
 }
 
@@ -105,15 +132,39 @@ func (qb *QueryBuilder) To(out interface{}) error {
 	}
 }
 
-// Exec .
-func (qb *QueryBuilder) Exec() error {
-	_, err := qb.db.db.Exec(qb.string(), qb.args...)
+// Delete .
+func (qb *QueryBuilder) Delete() error {
+	qb.action = sqlActionDelete
+	query, err := qb.string()
+	if err != nil {
+		return err
+	}
+
+	_, err = qb.db.db.Exec(query, qb.args...)
 	return err
 }
 
+// Count .
+func (qb *QueryBuilder) Count() (int64, error) {
+	qb.action = sqlActionCountFrom
+	query, err := qb.string()
+	if err != nil {
+		return 0, err
+	}
+
+	var count int64
+	row := qb.db.db.QueryRow(query, qb.args...)
+	err = row.Scan(&count)
+	return count, err
+}
+
 func (qb *QueryBuilder) toOne(out interface{}) error {
-	row := qb.db.db.QueryRow(qb.string(), qb.args...)
-	err := row.Scan(qb.getDests(reflect.ValueOf(out).Elem())...)
+	query, err := qb.string()
+	if err != nil {
+		return err
+	}
+	row := qb.db.db.QueryRow(query, qb.args...)
+	err = row.Scan(qb.getDests(reflect.ValueOf(out).Elem())...)
 	if err == sql.ErrNoRows {
 		return ErrNotFound
 	}
@@ -121,7 +172,11 @@ func (qb *QueryBuilder) toOne(out interface{}) error {
 }
 
 func (qb *QueryBuilder) toMany(sliceType reflect.Type, outs interface{}) error {
-	rows, err := qb.db.db.Query(qb.string(), qb.args...)
+	query, err := qb.string()
+	if err != nil {
+		return err
+	}
+	rows, err := qb.db.db.Query(query, qb.args...)
 	if err != nil {
 		return err
 	}
@@ -138,7 +193,7 @@ func (qb *QueryBuilder) toMany(sliceType reflect.Type, outs interface{}) error {
 	return nil
 }
 
-func (qb *QueryBuilder) string() string {
+func (qb *QueryBuilder) string() (string, error) {
 	var q strings.Builder
 	switch qb.action {
 	case sqlActionSelect:
@@ -162,6 +217,11 @@ func (qb *QueryBuilder) string() string {
 	case sqlActionDelete:
 		q.WriteString("delete from ")
 		q.WriteString(qb.model.table)
+	case sqlActionCountFrom:
+		q.WriteString("select count(*) from ")
+		q.WriteString(qb.model.table)
+	default:
+		return "", ErrBadQuery
 	}
 	for _, join := range qb.joins {
 		q.WriteString(" join ")
@@ -179,7 +239,7 @@ func (qb *QueryBuilder) string() string {
 		q.WriteString(" limit ")
 		q.WriteString(strconv.FormatUint(qb.limit, 10))
 	}
-	return q.String()
+	return q.String(), nil
 }
 
 func (qb *QueryBuilder) getDests(v reflect.Value) []interface{} {
