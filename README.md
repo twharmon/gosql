@@ -16,6 +16,7 @@ type User struct {
     // ID must be first field in struct and must be int64
     ID int64
     Name string
+    Active bool
 }
 
 // you must register all structs
@@ -24,17 +25,17 @@ gosql.Register(User{})
 
 // now you are ready to go
 
-
 insert a new user
 newUser := User{
     Name: "New Gopher",
+    Active: true,
 }
 db.Insert(&newUser)
 // newUser.ID is set after inserted into database
 
 // select a user
 var user User
-db.Query().Select("*").Where("id = ?", 1).To(&user)
+db.Select("*").Where("id = ?", 1).To(&user)
 
 // update the user
 user.Name = "Gopher"
@@ -42,6 +43,15 @@ db.Update(&user)
 
 // delete the user
 db.Delete(&user)
+// or
+db.Table("user").Where("id = ?", user.ID).Delete()
+
+// count all users
+count, _ := db.Table("user").Count()
+
+// count all active users
+count, _ := db.Table("user").Where("active = ?", true).Count()
+
 ```
 
 For full documentation see [godoc](https://godoc.org/github.com/twharmon/gosql).
@@ -51,4 +61,4 @@ Make a pull request
 
 ## Todo
 - document exported functions in comments
-- more Select capabilities, like count()
+- look into nullable types like sql.NullInt64
