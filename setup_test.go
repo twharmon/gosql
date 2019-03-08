@@ -3,6 +3,7 @@ package gosql_test
 import (
 	"database/sql"
 	"fmt"
+	"testing"
 
 	"github.com/twharmon/gofake"
 
@@ -83,6 +84,21 @@ func assertSameSlice(control []*User, test []*User) error {
 		}
 	}
 	return nil
+}
+
+func assertPanic(t *testing.T, desc string, f func()) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("assert panic: %s (no panic)", desc)
+		}
+	}()
+	f()
+}
+
+func assertErr(t *testing.T, desc string, err error) {
+	if err == nil {
+		t.Errorf("assert error: %s (nil error)", desc)
+	}
 }
 
 func makeUser() *User {

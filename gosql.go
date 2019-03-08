@@ -3,6 +3,7 @@ package gosql
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"reflect"
 	"regexp"
 	"strings"
@@ -28,7 +29,7 @@ func Conn(db *sql.DB) *DB {
 func Register(structs ...interface{}) {
 	for _, s := range structs {
 		if reflect.TypeOf(s).Kind() != reflect.Struct {
-			panic("structs must be pointers to your model structs")
+			panic(fmt.Sprintf("you can only register structs, %s found", reflect.TypeOf(s).Kind()))
 		}
 		m := new(model)
 		m.typ = reflect.TypeOf(s)

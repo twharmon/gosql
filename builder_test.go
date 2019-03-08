@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
+	"github.com/twharmon/gosql"
 )
 
 func TestBuilderSelectOneAllFields(t *testing.T) {
@@ -287,4 +288,61 @@ func TestBuilderDelete(t *testing.T) {
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
+}
+
+func TestBuilderSelectOneNoResult(t *testing.T) {
+	mock.ExpectQuery(`^select \* from user where id = \?$`).WithArgs(1).WillReturnRows(mock.NewRows([]string{}))
+
+	if err := DB.Query().Select("*").Where("id = ?", 1).To(&User{}); err != gosql.ErrNotFound {
+		t.Errorf("expected gosql.ErrNotFound: got %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+}
+
+func TestBuilderSelectOneErrors(t *testing.T) {
+	assertErr(
+		t,
+		"should return error if non pointer passed to To",
+		DB.Query().Select("*").Where("id = ?", 1).To(User{}),
+	)
+
+	type Post struct {
+		ID    int64
+		Title string
+	}
+	assertErr(
+		t,
+		"should return error if unregistered struct passed to To",
+		DB.Query().Select("*").Where("id = ?", 1).To(&Post{}),
+	)
+	assertErr(
+		t,
+		"should return error if slice of non pointers passed to To",
+		DB.Query().Select("*").Where("id = ?", 1).To(&[]Post{}),
+	)
+
+	type testMap map[string]interface{}
+	assertErr(
+		t,
+		"should return error if slice of pointers to non structs passed to To",
+		DB.Query().Select("*").Where("id = ?", 1).To(&[]*testMap{}),
+	)
+
+	assertErr(
+		t,
+		"should return error if slice of pointers to non registered items passed to To",
+		DB.Query().Select("*").Where("id = ?", 1).To(&[]*Post{}),
+	)
+
+	testStr := "asdf"
+	assertErr(
+		t,
+		"should return error if non struct and non slice passed to To",
+		DB.Query().Select("*").Where("id = ?", 1).To(&testStr),
+	)
 }

@@ -24,3 +24,16 @@ func TestInsert(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
+
+func TestInsertErrors(t *testing.T) {
+	assertErr(t, "should return error if struct and not pointer to struct", DB.Insert(User{}))
+
+	testMap := make(map[string]interface{})
+	assertErr(t, "should return error if pointer to non struct", DB.Insert(&testMap))
+
+	type Post struct {
+		ID    int64
+		Title string
+	}
+	assertErr(t, "should return error if struct not registered", DB.Insert(&Post{}))
+}
