@@ -231,10 +231,34 @@ func TestBuilderSelectManyOrderBy(t *testing.T) {
 	for i, _ := range control {
 		rows.AddRow(control[i].ID, control[i].Role, control[i].Email, control[i].Active)
 	}
-	mock.ExpectQuery(`^select \* from user where id = \? order by email$`).WithArgs(1).WillReturnRows(rows)
+	mock.ExpectQuery(`^select \* from user where id = \? order by email asc$`).WithArgs(1).WillReturnRows(rows)
 
 	var test []*User
-	if err := DB.Select("*").Where("id = ?", 1).OrderBy("email").To(&test); err != nil {
+	if err := DB.Select("*").Where("id = ?", 1).OrderBy("email asc").To(&test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	if err := assertSameSlice(control, test); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestBuilderSelectManyOffset(t *testing.T) {
+	control := makeUserSlice(3)
+	rows := sqlmock.NewRows([]string{"id", "role", "email", "active"})
+	for i, _ := range control {
+		rows.AddRow(control[i].ID, control[i].Role, control[i].Email, control[i].Active)
+	}
+	mock.ExpectQuery(`^select \* from user offset 5$`).WillReturnRows(rows)
+
+	var test []*User
+	if err := DB.Select("*").Offset(5).To(&test); err != nil {
 		t.Errorf("error was not expected while selecting: %s", err)
 		return
 	}

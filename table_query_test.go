@@ -37,3 +37,25 @@ func TestBuilderCount(t *testing.T) {
 		t.Errorf("expected count of 10, got %d", count)
 	}
 }
+
+func TestBuilderTableJoin(t *testing.T) {
+	var control int64 = 5
+	rows := sqlmock.NewRows([]string{"count(*)"})
+	rows.AddRow(control)
+	mock.ExpectQuery(`^select count\(\*\) from user join post on post.user_id = user.id$`).WillReturnRows(rows)
+
+	test, err := DB.Table("user").Join("post on post.user_id = user.id").Count()
+	if err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+
+	if control != test {
+		t.Errorf("count was %d, expected %d", test, control)
+	}
+}

@@ -17,7 +17,8 @@ type SelectQuery struct {
 	where  string
 	args   []interface{}
 	order  string
-	limit  uint64
+	limit  int64
+	offset int64
 }
 
 // Select .
@@ -42,14 +43,20 @@ func (sq *SelectQuery) Where(where string, args ...interface{}) *SelectQuery {
 }
 
 // OrderBy .
-func (sq *SelectQuery) OrderBy(order string) *SelectQuery {
-	sq.order = order
+func (sq *SelectQuery) OrderBy(orderBy string) *SelectQuery {
+	sq.order = orderBy
 	return sq
 }
 
 // Limit .
-func (sq *SelectQuery) Limit(limit uint64) *SelectQuery {
+func (sq *SelectQuery) Limit(limit int64) *SelectQuery {
 	sq.limit = limit
+	return sq
+}
+
+// Offset .
+func (sq *SelectQuery) Offset(offset int64) *SelectQuery {
+	sq.offset = offset
 	return sq
 }
 
@@ -145,7 +152,11 @@ func (sq *SelectQuery) string() string {
 	}
 	if sq.limit > 0 {
 		q.WriteString(" limit ")
-		q.WriteString(strconv.FormatUint(sq.limit, 10))
+		q.WriteString(strconv.FormatInt(sq.limit, 10))
+	}
+	if sq.offset > 0 {
+		q.WriteString(" offset ")
+		q.WriteString(strconv.FormatInt(sq.offset, 10))
 	}
 	return q.String()
 }
