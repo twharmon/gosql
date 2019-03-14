@@ -86,7 +86,7 @@ func (m *model) mustBeValid() {
 
 func (m *model) getFieldIndexByName(name string) int {
 	for i, f := range m.fields {
-		if f == name {
+		if strings.HasSuffix(name, f) {
 			return i
 		}
 	}
