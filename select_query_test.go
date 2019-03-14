@@ -71,7 +71,7 @@ func TestBuilderSelectOneOneField(t *testing.T) {
 	}
 
 	test.ID = control.ID
-	test.ID = control.ID
+	test.Active = control.Active
 	test.Role = control.Role
 	if err := assertSame(control, test); err != nil {
 		t.Error(err)
@@ -82,10 +82,10 @@ func TestBuilderSelectOneJoin(t *testing.T) {
 	control := makeUser()
 	rows := sqlmock.NewRows([]string{"id", "role", "email", "active"})
 	rows.AddRow(control.ID, control.Role, control.Email, control.Active)
-	mock.ExpectQuery(`^select user\.\* from user join post on post.user_id = user.id where id = \?$`).WithArgs(1).WillReturnRows(rows)
+	mock.ExpectQuery(`^select user\.\* from user join post on post.user_id = user.id where user.id = \?$`).WithArgs(1).WillReturnRows(rows)
 
 	test := new(User)
-	if err := DB.Select("*").Where("id = ?", 1).Join("post on post.user_id = user.id").To(test); err != nil {
+	if err := DB.Select("user.*").Where("user.id = ?", 1).Join("post on post.user_id = user.id").To(test); err != nil {
 		t.Errorf("error was not expected while selecting: %s", err)
 		return
 	}
@@ -282,7 +282,7 @@ func TestBuilderSelectManyJoinSomeFields(t *testing.T) {
 	mock.ExpectQuery(`^select user\.email, user\.active from user join post on post.user_id = user.id$`).WillReturnRows(rows)
 
 	var test []*User
-	if err := DB.Select("email", "active").Join("post on post.user_id = user.id").To(&test); err != nil {
+	if err := DB.Select("user.email", "user.active").Join("post on post.user_id = user.id").To(&test); err != nil {
 		t.Errorf("error was not expected while selecting: %s", err)
 		return
 	}

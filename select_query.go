@@ -14,7 +14,7 @@ type SelectQuery struct {
 	model  *model
 	fields []string
 	joins  []string
-	where  string
+	wheres []string
 	args   []interface{}
 	order  string
 	limit  int64
@@ -36,9 +36,9 @@ func (sq *SelectQuery) Join(join string) *SelectQuery {
 }
 
 // Where .
-func (sq *SelectQuery) Where(where string, args ...interface{}) *SelectQuery {
-	sq.where = where
-	sq.args = args
+func (sq *SelectQuery) Where(where string, arg interface{}) *SelectQuery {
+	sq.wheres = append(sq.wheres, where)
+	sq.args = append(sq.args, arg)
 	return sq
 }
 
@@ -124,16 +124,8 @@ func (sq *SelectQuery) string() string {
 	var q strings.Builder
 	q.WriteString("select ")
 	for i := 0; i < len(sq.fields)-1; i++ {
-		if sq.joins != nil {
-			q.WriteString(sq.model.table)
-			q.WriteString(".")
-		}
 		q.WriteString(sq.fields[i])
 		q.WriteString(", ")
-	}
-	if sq.joins != nil {
-		q.WriteString(sq.model.table)
-		q.WriteString(".")
 	}
 	q.WriteString(sq.fields[len(sq.fields)-1])
 	q.WriteString(" from ")
@@ -142,9 +134,13 @@ func (sq *SelectQuery) string() string {
 		q.WriteString(" join ")
 		q.WriteString(join)
 	}
-	if sq.where != "" {
-		q.WriteString(" where ")
-		q.WriteString(sq.where)
+	for i, where := range sq.wheres {
+		if i == 0 {
+			q.WriteString(" where ")
+		} else {
+			q.WriteString(" and ")
+		}
+		q.WriteString(where)
 	}
 	if sq.order != "" {
 		q.WriteString(" order by ")
@@ -162,7 +158,7 @@ func (sq *SelectQuery) string() string {
 }
 
 func (sq *SelectQuery) getDests(v reflect.Value) []interface{} {
-	if sq.fields[0] == "*" {
+	if strings.HasSuffix(sq.fields[0], "*") {
 		scans := make([]interface{}, sq.model.fieldCount)
 		for i := 0; i < sq.model.fieldCount; i++ {
 			scans[i] = v.Field(i).Addr().Interface()

@@ -9,7 +9,7 @@ import (
 func TestBuilderDelete(t *testing.T) {
 	mock.ExpectExec(`^delete from user where email = \?$`).WithArgs("test@example.com").WillReturnResult(sqlmock.NewResult(1, 1))
 
-	if err := DB.Table("user").Where("email = ?", "test@example.com").Delete(); err != nil {
+	if _, err := DB.Table("user").Where("email = ?", "test@example.com").Delete(); err != nil {
 		t.Errorf("error was not expected while deleting: %v", err)
 		return
 	}
