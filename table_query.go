@@ -1,6 +1,7 @@
 package gosql
 
 import (
+	"database/sql"
 	"strings"
 )
 
@@ -51,35 +52,19 @@ func (tq *TableQuery) Join(join string) *TableQuery {
 }
 
 // Delete .
-func (tq *TableQuery) Delete() (int64, error) {
+func (tq *TableQuery) Delete() (sql.Result, error) {
 	tq.action = sqlActionDelete
 	args := tq.setArgs
 	args = append(args, tq.whereArgs...)
-	res, err := tq.db.db.Exec(tq.string(), args...)
-	if err != nil {
-		return 0, err
-	}
-	ra, err := res.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return ra, nil
+	return tq.db.db.Exec(tq.string(), args...)
 }
 
 // Update .
-func (tq *TableQuery) Update() (int64, error) {
+func (tq *TableQuery) Update() (sql.Result, error) {
 	tq.action = sqlActionUpdate
 	args := tq.setArgs
 	args = append(args, tq.whereArgs...)
-	res, err := tq.db.db.Exec(tq.string(), args...)
-	if err != nil {
-		return 0, err
-	}
-	ra, err := res.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return ra, nil
+	return tq.db.db.Exec(tq.string(), args...)
 }
 
 // Count .
