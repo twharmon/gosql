@@ -8,13 +8,18 @@ import (
 	"strings"
 )
 
+type where struct {
+	conjunction string
+	condition   string
+}
+
 // SelectQuery .
 type SelectQuery struct {
 	db     *DB
 	model  *model
 	fields []string
 	joins  []string
-	wheres []string
+	wheres []*where
 	args   []interface{}
 	order  string
 	limit  int64
@@ -36,9 +41,24 @@ func (sq *SelectQuery) Join(join string) *SelectQuery {
 }
 
 // Where .
-func (sq *SelectQuery) Where(where string, arg interface{}) *SelectQuery {
-	sq.wheres = append(sq.wheres, where)
-	sq.args = append(sq.args, arg)
+func (sq *SelectQuery) Where(condition string, args ...interface{}) *SelectQuery {
+	w := &where{
+		conjunction: " and ",
+		condition:   condition,
+	}
+	sq.wheres = append(sq.wheres, w)
+	sq.args = append(sq.args, args...)
+	return sq
+}
+
+// OrWhere .
+func (sq *SelectQuery) OrWhere(condition string, args ...interface{}) *SelectQuery {
+	w := &where{
+		conjunction: " or ",
+		condition:   condition,
+	}
+	sq.wheres = append(sq.wheres, w)
+	sq.args = append(sq.args, args...)
 	return sq
 }
 
@@ -138,9 +158,9 @@ func (sq *SelectQuery) string() string {
 		if i == 0 {
 			q.WriteString(" where ")
 		} else {
-			q.WriteString(" and ")
+			q.WriteString(where.conjunction)
 		}
-		q.WriteString(where)
+		q.WriteString(where.condition)
 	}
 	if sq.order != "" {
 		q.WriteString(" order by ")

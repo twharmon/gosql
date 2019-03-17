@@ -17,7 +17,7 @@ type TableQuery struct {
 	action    int
 	table     string
 	joins     []string
-	wheres    []string
+	wheres    []*where
 	sets      []string
 	whereArgs []interface{}
 	setArgs   []interface{}
@@ -32,9 +32,24 @@ func (db *DB) Table(table string) *TableQuery {
 }
 
 // Where .
-func (tq *TableQuery) Where(where string, arg interface{}) *TableQuery {
-	tq.wheres = append(tq.wheres, where)
-	tq.whereArgs = append(tq.whereArgs, arg)
+func (tq *TableQuery) Where(condition string, args ...interface{}) *TableQuery {
+	w := &where{
+		conjunction: " and ",
+		condition:   condition,
+	}
+	tq.wheres = append(tq.wheres, w)
+	tq.whereArgs = append(tq.whereArgs, args...)
+	return tq
+}
+
+// OrWhere .
+func (tq *TableQuery) OrWhere(condition string, args ...interface{}) *TableQuery {
+	w := &where{
+		conjunction: " or ",
+		condition:   condition,
+	}
+	tq.wheres = append(tq.wheres, w)
+	tq.whereArgs = append(tq.whereArgs, args...)
 	return tq
 }
 
@@ -107,9 +122,9 @@ func (tq *TableQuery) string() string {
 		if i == 0 {
 			q.WriteString(" where ")
 		} else {
-			q.WriteString(" and ")
+			q.WriteString(where.conjunction)
 		}
-		q.WriteString(where)
+		q.WriteString(where.condition)
 	}
 	return q.String()
 }
