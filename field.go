@@ -2,23 +2,31 @@ package gosql
 
 import (
 	"reflect"
+	"strings"
 )
 
-var fieldKinds = []reflect.Kind{
-	reflect.String,
-	reflect.Bool,
-	reflect.Uint,
-	reflect.Uint64,
-	reflect.Int,
-	reflect.Int64,
-	reflect.Float32,
-	reflect.Float64,
+var fieldTypes = []string{
+	"string",
+	"bool",
+	"uint",
+	"uint64",
+	"int",
+	"int64",
+	"float32",
+	"float64",
+	"gosql.NullInt64",
+	"gosql.NullString",
+	"gosql.NullFloat64",
+	"gosql.NullBool",
+	"gosql.NullTime",
+	"time.Time",
 }
 
 func isField(s reflect.StructField) bool {
-	k := s.Type.Kind()
-	for i := 0; i < len(fieldKinds); i++ {
-		if fieldKinds[i] == k {
+	t := s.Type.String()
+	for i := 0; i < len(fieldTypes); i++ {
+		firstLetter := string(s.Name[0])
+		if fieldTypes[i] == t && firstLetter == strings.ToUpper(firstLetter) {
 			return true
 		}
 	}

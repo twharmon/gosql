@@ -61,4 +61,3 @@ Make a pull request
 
 ## Todo
 - document exported functions in comments
-- look into nullable types like sql.NullInt64
