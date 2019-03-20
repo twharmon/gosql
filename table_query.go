@@ -54,9 +54,9 @@ func (tq *TableQuery) OrWhere(condition string, args ...interface{}) *TableQuery
 }
 
 // Set .
-func (tq *TableQuery) Set(set string, arg interface{}) *TableQuery {
+func (tq *TableQuery) Set(set string, args ...interface{}) *TableQuery {
 	tq.sets = append(tq.sets, set)
-	tq.setArgs = append(tq.setArgs, arg)
+	tq.setArgs = append(tq.setArgs, args...)
 	return tq
 }
 
