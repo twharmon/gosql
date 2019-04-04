@@ -2,6 +2,7 @@ package gosql
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -114,8 +115,12 @@ func (sq *SelectQuery) To(out interface{}) error {
 }
 
 func (sq *SelectQuery) toOne(out interface{}) error {
+	e := reflect.ValueOf(out).Elem()
+	if !e.IsValid() {
+		return errors.New("out must not be nil pointer")
+	}
 	row := sq.db.db.QueryRow(sq.string(), sq.args...)
-	err := row.Scan(sq.getDests(reflect.ValueOf(out).Elem())...)
+	err := row.Scan(sq.getDests(e)...)
 	if err == sql.ErrNoRows {
 		return ErrNotFound
 	}
