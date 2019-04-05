@@ -23,6 +23,7 @@ type SelectQuery struct {
 	wheres []*where
 	args   []interface{}
 	order  string
+	many   bool
 	limit  int64
 	offset int64
 }
@@ -32,6 +33,7 @@ func (db *DB) Select(fields ...string) *SelectQuery {
 	sq := new(SelectQuery)
 	sq.db = db
 	sq.fields = fields
+	sq.limit = 1000
 	return sq
 }
 
@@ -81,7 +83,9 @@ func (sq *SelectQuery) Offset(offset int64) *SelectQuery {
 	return sq
 }
 
-// To .
+// To sets the result of the query to out. To() can only take a pointer
+// to a struct, a pointer to a slice of structs, or a pointer to a slice
+// of pointers to structs.
 func (sq *SelectQuery) To(out interface{}) error {
 	t := reflect.TypeOf(out)
 	if t.Kind() != reflect.Ptr {
@@ -96,28 +100,33 @@ func (sq *SelectQuery) To(out interface{}) error {
 		}
 		return sq.toOne(out)
 	case reflect.Slice:
-		ptr := e.Elem()
-		if ptr.Kind() != reflect.Ptr {
-			return fmt.Errorf("out must be a slice of pointers")
+		el := e.Elem()
+		switch el.Kind() {
+		case reflect.Ptr:
+			el = el.Elem()
+			if el.Kind() != reflect.Struct {
+				break
+			}
+			sq.model = models[el.Name()]
+			if sq.model == nil {
+				return fmt.Errorf("you must first register %s", el.Name())
+			}
+			return sq.toMany(e, out)
+		case reflect.Struct:
+			sq.model = models[el.Name()]
+			if sq.model == nil {
+				return fmt.Errorf("you must first register %s", el.Name())
+			}
+			return sq.toManyValues(e, out)
 		}
-		strct := ptr.Elem()
-		if strct.Kind() != reflect.Struct {
-			return fmt.Errorf("out must be a slice of pointers to structs")
-		}
-		sq.model = models[strct.Name()]
-		if sq.model == nil {
-			return fmt.Errorf("you must first register %s", strct.Name())
-		}
-		return sq.toMany(e, out)
-	default:
-		return fmt.Errorf("models must be a struct or slice (%s found)", e.Kind().String())
 	}
+	return fmt.Errorf("out must be a struct, slice of structs, or slice of pointers to structs (%s found)", e.Kind().String())
 }
 
 func (sq *SelectQuery) toOne(out interface{}) error {
 	e := reflect.ValueOf(out).Elem()
 	if !e.IsValid() {
-		return errors.New("out must not be nil pointer")
+		return errors.New("out must not be a nil pointer")
 	}
 	row := sq.db.db.QueryRow(sq.string(), sq.args...)
 	err := row.Scan(sq.getDests(e)...)
@@ -128,20 +137,45 @@ func (sq *SelectQuery) toOne(out interface{}) error {
 }
 
 func (sq *SelectQuery) toMany(sliceType reflect.Type, outs interface{}) error {
+	sq.many = true
 	rows, err := sq.db.db.Query(sq.string(), sq.args...)
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
-	newOuts := reflect.MakeSlice(sliceType, 0, int(sq.limit))
-	for i := 0; rows.Next(); i++ {
-		newOut := reflect.New(sq.model.typ)
-		if err := rows.Scan(sq.getDests(newOut.Elem())...); err != nil {
+	newOuts := reflect.MakeSlice(sliceType, int(sq.limit), int(sq.limit))
+	i := 0
+	for rows.Next() {
+		newOuts.Index(i).Set(reflect.New(sq.model.typ))
+		if err := rows.Scan(sq.getDests(newOuts.Index(i).Elem())...); err != nil {
 			return err
 		}
-		newOuts = reflect.Append(newOuts, newOut)
+		i++
 	}
-	reflect.Indirect(reflect.ValueOf(outs)).Set(newOuts)
+	v := reflect.Indirect(reflect.ValueOf(outs))
+	v.Set(newOuts)
+	v.SetLen(i)
+	return nil
+}
+
+func (sq *SelectQuery) toManyValues(sliceType reflect.Type, outs interface{}) error {
+	sq.many = true
+	rows, err := sq.db.db.Query(sq.string(), sq.args...)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	newOuts := reflect.MakeSlice(sliceType, int(sq.limit), int(sq.limit))
+	i := 0
+	for rows.Next() {
+		if err := rows.Scan(sq.getDests(newOuts.Index(i))...); err != nil {
+			return err
+		}
+		i++
+	}
+	v := reflect.Indirect(reflect.ValueOf(outs))
+	v.Set(newOuts)
+	v.SetLen(i)
 	return nil
 }
 
@@ -171,7 +205,7 @@ func (sq *SelectQuery) string() string {
 		q.WriteString(" order by ")
 		q.WriteString(sq.order)
 	}
-	if sq.limit > 0 {
+	if sq.many {
 		q.WriteString(" limit ")
 		q.WriteString(strconv.FormatInt(sq.limit, 10))
 	}

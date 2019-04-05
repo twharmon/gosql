@@ -128,7 +128,7 @@ func TestBuilderSelectManyAllFields(t *testing.T) {
 	for _, c := range control {
 		rows.AddRow(c.ID, c.Role, c.Email, c.Active)
 	}
-	mock.ExpectQuery(`^select \* from user$`).WillReturnRows(rows)
+	mock.ExpectQuery(`^select \* from user limit 1000$`).WillReturnRows(rows)
 
 	var test []*User
 	if err := DB.Select("*").To(&test); err != nil {
@@ -145,15 +145,15 @@ func TestBuilderSelectManyAllFields(t *testing.T) {
 		t.Error(err)
 	}
 }
-func TestBuilderSelectManySomeFields(t *testing.T) {
-	control := makeUserSlice(3)
+func TestBuilderSelectManyValuesSomeFields(t *testing.T) {
+	control := makeUserValuesSlice(3)
 	rows := sqlmock.NewRows([]string{"email", "active"})
 	for i, _ := range control {
 		rows.AddRow(control[i].Email, control[i].Active)
 	}
-	mock.ExpectQuery(`^select email, active from user$`).WillReturnRows(rows)
+	mock.ExpectQuery(`^select email, active from user limit 1000$`).WillReturnRows(rows)
 
-	var test []*User
+	var test []User
 	if err := DB.Select("email", "active").To(&test); err != nil {
 		t.Errorf("error was not expected while selecting: %s", err)
 		return
@@ -168,7 +168,7 @@ func TestBuilderSelectManySomeFields(t *testing.T) {
 		test[i].ID = control[i].ID
 		test[i].Role = control[i].Role
 	}
-	if err := assertSameSlice(control, test); err != nil {
+	if err := assertSameSliceValues(control, test); err != nil {
 		t.Error(err)
 	}
 }
@@ -178,7 +178,7 @@ func TestBuilderSelectManyOneField(t *testing.T) {
 	for i, _ := range control {
 		rows.AddRow(control[i].Email)
 	}
-	mock.ExpectQuery(`^select email from user$`).WillReturnRows(rows)
+	mock.ExpectQuery(`^select email from user limit 1000$`).WillReturnRows(rows)
 
 	var test []*User
 	if err := DB.Select("email").To(&test); err != nil {
@@ -231,7 +231,7 @@ func TestBuilderSelectManyOrderBy(t *testing.T) {
 	for i, _ := range control {
 		rows.AddRow(control[i].ID, control[i].Role, control[i].Email, control[i].Active)
 	}
-	mock.ExpectQuery(`^select \* from user where id = \? order by email asc$`).WithArgs(1).WillReturnRows(rows)
+	mock.ExpectQuery(`^select \* from user where id = \? order by email asc limit 1000$`).WithArgs(1).WillReturnRows(rows)
 
 	var test []*User
 	if err := DB.Select("*").Where("id = ?", 1).OrderBy("email asc").To(&test); err != nil {
@@ -255,7 +255,7 @@ func TestBuilderSelectManyOffset(t *testing.T) {
 	for i, _ := range control {
 		rows.AddRow(control[i].ID, control[i].Role, control[i].Email, control[i].Active)
 	}
-	mock.ExpectQuery(`^select \* from user offset 5$`).WillReturnRows(rows)
+	mock.ExpectQuery(`^select \* from user limit 1000 offset 5$`).WillReturnRows(rows)
 
 	var test []*User
 	if err := DB.Select("*").Offset(5).To(&test); err != nil {
@@ -279,7 +279,7 @@ func TestBuilderSelectManyJoinSomeFields(t *testing.T) {
 	for i, _ := range control {
 		rows.AddRow(control[i].Email, control[i].Active)
 	}
-	mock.ExpectQuery(`^select user\.email, user\.active from user join post on post.user_id = user.id$`).WillReturnRows(rows)
+	mock.ExpectQuery(`^select user\.email, user\.active from user join post on post.user_id = user.id limit 1000$`).WillReturnRows(rows)
 
 	var test []*User
 	if err := DB.Select("user.email", "user.active").Join("post on post.user_id = user.id").To(&test); err != nil {

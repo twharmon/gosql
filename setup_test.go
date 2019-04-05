@@ -86,6 +86,18 @@ func assertSameSlice(control []*User, test []*User) error {
 	return nil
 }
 
+func assertSameSliceValues(control []User, test []User) error {
+	if len(control) != len(test) {
+		return fmt.Errorf("control hand length %d, but test had length %d", len(control), len(test))
+	}
+	for i, _ := range control {
+		if err := assertSame(&control[i], &test[i]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func assertPanic(t *testing.T, desc string, f func()) {
 	defer func() {
 		if r := recover(); r == nil {
@@ -124,6 +136,14 @@ func makeUserSlice(size int) []*User {
 	users := make([]*User, size)
 	for i := 0; i < size; i++ {
 		users[i] = makeUser()
+	}
+	return users
+}
+
+func makeUserValuesSlice(size int) []User {
+	users := make([]User, size)
+	for i := 0; i < size; i++ {
+		users[i] = *makeUser()
 	}
 	return users
 }
