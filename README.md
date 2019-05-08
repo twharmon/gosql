@@ -1,4 +1,4 @@
-# GoSQL [![Build Status](https://travis-ci.com/twharmon/gosql.svg?branch=master)](https://travis-ci.com/twharmon/gosql)
+# GoSQL [![Build Status](https://travis-ci.com/twharmon/gosql.svg?branch=master)](https://travis-ci.com/twharmon/gosql) [![Coverage Status](https://coveralls.io/repos/github/twharmon/gosql/badge.svg?branch=master)](https://coveralls.io/github/twharmon/gosql?branch=master)
 Query builder with some handy utility functions.
 
 ## Install
