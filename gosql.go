@@ -1,7 +1,6 @@
 package gosql
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"reflect"
@@ -12,18 +11,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// DB .
-type DB struct {
-	db *sql.DB
-}
-
 // ErrNotFound .
 var ErrNotFound = errors.New("no result found")
-
-// Conn .
-func Conn(db *sql.DB) *DB {
-	return &DB{db}
-}
 
 // Register .
 func Register(structs ...interface{}) {

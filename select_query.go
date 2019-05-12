@@ -28,15 +28,6 @@ type SelectQuery struct {
 	offset int64
 }
 
-// Select .
-func (db *DB) Select(fields ...string) *SelectQuery {
-	sq := new(SelectQuery)
-	sq.db = db
-	sq.fields = fields
-	sq.limit = 1000
-	return sq
-}
-
 // Join .
 func (sq *SelectQuery) Join(join string) *SelectQuery {
 	sq.joins = append(sq.joins, join)
@@ -208,6 +199,8 @@ func (sq *SelectQuery) string() string {
 	if sq.many {
 		q.WriteString(" limit ")
 		q.WriteString(strconv.FormatInt(sq.limit, 10))
+	} else {
+		q.WriteString(" limit 1")
 	}
 	if sq.offset > 0 {
 		q.WriteString(" offset ")

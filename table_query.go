@@ -23,14 +23,6 @@ type TableQuery struct {
 	setArgs   []interface{}
 }
 
-// Table .
-func (db *DB) Table(table string) *TableQuery {
-	tq := new(TableQuery)
-	tq.db = db
-	tq.table = table
-	return tq
-}
-
 // Where .
 func (tq *TableQuery) Where(condition string, args ...interface{}) *TableQuery {
 	w := &where{

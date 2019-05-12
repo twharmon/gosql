@@ -11,7 +11,7 @@ func TestBuilderSelectOneAllFields(t *testing.T) {
 	control := makeUser()
 	rows := sqlmock.NewRows([]string{"id", "role", "email", "active"})
 	rows.AddRow(control.ID, control.Role, control.Email, control.Active)
-	mock.ExpectQuery(`^select \* from user where id = \?$`).WithArgs(1).WillReturnRows(rows)
+	mock.ExpectQuery(`^select \* from user where id = \? limit 1$`).WithArgs(1).WillReturnRows(rows)
 
 	test := new(User)
 	if err := DB.Select("*").Where("id = ?", 1).To(test); err != nil {
@@ -33,7 +33,7 @@ func TestBuilderSelectOneSomeFields(t *testing.T) {
 	control := makeUser()
 	rows := sqlmock.NewRows([]string{"email", "active"})
 	rows.AddRow(control.Email, control.Active)
-	mock.ExpectQuery(`^select email, active from user where id = \?$`).WithArgs(1).WillReturnRows(rows)
+	mock.ExpectQuery(`^select email, active from user where id = \? limit 1$`).WithArgs(1).WillReturnRows(rows)
 
 	test := new(User)
 	if err := DB.Select("email", "active").Where("id = ?", 1).To(test); err != nil {
@@ -57,7 +57,7 @@ func TestBuilderSelectOneOneField(t *testing.T) {
 	control := makeUser()
 	rows := sqlmock.NewRows([]string{"email"})
 	rows.AddRow(control.Email)
-	mock.ExpectQuery(`^select email from user where id = \?$`).WithArgs(1).WillReturnRows(rows)
+	mock.ExpectQuery(`^select email from user where id = \? limit 1$`).WithArgs(1).WillReturnRows(rows)
 
 	test := new(User)
 	if err := DB.Select("email").Where("id = ?", 1).To(test); err != nil {
@@ -82,7 +82,7 @@ func TestBuilderSelectOneJoin(t *testing.T) {
 	control := makeUser()
 	rows := sqlmock.NewRows([]string{"id", "role", "email", "active"})
 	rows.AddRow(control.ID, control.Role, control.Email, control.Active)
-	mock.ExpectQuery(`^select user\.\* from user join post on post.user_id = user.id where user.id = \?$`).WithArgs(1).WillReturnRows(rows)
+	mock.ExpectQuery(`^select user\.\* from user join post on post.user_id = user.id where user.id = \? limit 1$`).WithArgs(1).WillReturnRows(rows)
 
 	test := new(User)
 	if err := DB.Select("user.*").Where("user.id = ?", 1).Join("post on post.user_id = user.id").To(test); err != nil {
@@ -104,7 +104,7 @@ func TestBuilderSelectOneExpanded(t *testing.T) {
 	control := makeExpandedUser()
 	rows := sqlmock.NewRows([]string{"id", "role", "email", "active"})
 	rows.AddRow(control.ID, control.Role, control.Email, control.Active)
-	mock.ExpectQuery(`^select \* from expanded_user where id = \?$`).WithArgs(1).WillReturnRows(rows)
+	mock.ExpectQuery(`^select \* from expanded_user where id = \? limit 1$`).WithArgs(1).WillReturnRows(rows)
 
 	test := new(ExpandedUser)
 	if err := DB.Select("*").Where("id = ?", 1).To(test); err != nil {
@@ -302,7 +302,7 @@ func TestBuilderSelectManyJoinSomeFields(t *testing.T) {
 }
 
 func TestBuilderSelectOneNoResult(t *testing.T) {
-	mock.ExpectQuery(`^select \* from user where id = \?$`).WithArgs(1).WillReturnRows(mock.NewRows([]string{}))
+	mock.ExpectQuery(`^select \* from user where id = \? limit 1$`).WithArgs(1).WillReturnRows(mock.NewRows([]string{}))
 
 	if err := DB.Select("*").Where("id = ?", 1).To(&User{}); err != gosql.ErrNotFound {
 		t.Errorf("expected gosql.ErrNotFound: got %s", err)
