@@ -79,8 +79,8 @@ func (m *model) mustBeValid() {
 	if idField.Name != "ID" {
 		panic(fmt.Sprintf("first field of %s must be ID", m.name))
 	}
-	if idField.Type.Kind() != reflect.Int64 {
-		panic(fmt.Sprintf("%s.ID must have type int64", m.name))
+	if idField.Type.Kind() != reflect.Uint64 {
+		panic(fmt.Sprintf("%s.ID must have type uint64", m.name))
 	}
 }
 

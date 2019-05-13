@@ -23,7 +23,7 @@ func TestRegister(t *testing.T) {
 		gosql.Register(Test{})
 	})
 
-	assertPanic(t, "should panic if ID not of type int64", func() {
+	assertPanic(t, "should panic if ID not of type uint64", func() {
 		type Test struct {
 			ID   int
 			Name string

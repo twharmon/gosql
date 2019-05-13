@@ -16,7 +16,7 @@ var mock sqlmock.Sqlmock
 
 // User contains user information
 type User struct {
-	ID     int64  `json:"id"`
+	ID     uint64 `json:"id"`
 	Role   string `json:"role"`
 	Email  string `json:"email"`
 	Active bool   `json:"active"`
@@ -24,7 +24,7 @@ type User struct {
 
 // ExpandedUser contains user information, and other fields not in db
 type ExpandedUser struct {
-	ID     int64  `json:"id"`
+	ID     uint64 `json:"id"`
 	Role   string `json:"role"`
 	Email  string `json:"email"`
 	Active bool   `json:"active"`
@@ -115,7 +115,7 @@ func assertErr(t *testing.T, desc string, err error) {
 
 func makeUser() *User {
 	return &User{
-		ID:     int64(gofake.Int(100)),
+		ID:     uint64(gofake.Int(100)),
 		Role:   gofake.Word(),
 		Email:  gofake.Email(),
 		Active: gofake.Int(1) == 1,
@@ -124,7 +124,7 @@ func makeUser() *User {
 
 func makeExpandedUser() *ExpandedUser {
 	return &ExpandedUser{
-		ID:     int64(gofake.Int(100)),
+		ID:     uint64(gofake.Int(100)),
 		Role:   gofake.Word(),
 		Email:  gofake.Email(),
 		Active: gofake.Int(1) == 1,
