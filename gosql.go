@@ -1,6 +1,7 @@
 package gosql
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"reflect"
@@ -40,6 +41,11 @@ func Register(structs ...interface{}) {
 		m.setUpdateQuery()
 		m.setDeleteQuery()
 	}
+}
+
+// Conn returns a reference to DB.
+func Conn(db *sql.DB) *DB {
+	return &DB{db}
 }
 
 var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
