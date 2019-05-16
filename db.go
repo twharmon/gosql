@@ -36,47 +36,46 @@ func (db *DB) SetMaxIdleConns(max int) {
 	db.db.SetMaxIdleConns(max)
 }
 
-// Conn returns a reference to DB.
-func Conn(db *sql.DB) *DB {
-	return &DB{db}
-}
-
 // Insert .
-func (db *DB) Insert(obj interface{}) error {
+func (db *DB) Insert(obj interface{}) (sql.Result, error) {
 	m, err := getModelOf(obj)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	v := reflect.ValueOf(obj).Elem()
-	_, err = db.db.Exec(m.insertQuery, m.getArgs(v)...)
-	return err
+	return db.db.Exec(m.insertQuery, m.getArgs(v)...)
 }
 
-// Update .
-func (db *DB) Update(obj interface{}) error {
-	m, err := getModelOf(obj)
-	if err != nil {
-		return err
-	}
-	v := reflect.ValueOf(obj).Elem()
-	_, err = db.db.Exec(m.updateQuery, m.getArgsIDLast(v)...)
-	return err
-}
+// // Update .
+// func (db *DB) Update(obj interface{}) error {
+// 	m, err := getModelOf(obj)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	v := reflect.ValueOf(obj).Elem()
+// 	_, err = db.db.Exec(m.updateQuery, m.getArgsIDLast(v)...)
+// 	return err
+// }
 
-// Delete .
-func (db *DB) Delete(obj interface{}) error {
-	m, err := getModelOf(obj)
-	if err != nil {
-		return err
-	}
-	v := reflect.ValueOf(obj).Elem()
-	_, err = db.db.Exec(m.deleteQuery, m.getIDArg(v))
-	return err
-}
+// // Delete .
+// func (db *DB) Delete(obj interface{}) error {
+// 	m, err := getModelOf(obj)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	v := reflect.ValueOf(obj).Elem()
+// 	_, err = db.db.Exec(m.deleteQuery, m.getIDArg(v))
+// 	return err
+// }
 
 // Exec .
 func (db *DB) Exec(query string, args ...interface{}) (sql.Result, error) {
 	return db.db.Exec(query, args...)
+}
+
+// Query .
+func (db *DB) Query(query string, args ...interface{}) (*sql.Rows, error) {
+	return db.db.Query(query, args...)
 }
 
 // Select .
@@ -88,10 +87,27 @@ func (db *DB) Select(fields ...string) *SelectQuery {
 	return sq
 }
 
-// Table .
-func (db *DB) Table(table string) *TableQuery {
-	tq := new(TableQuery)
-	tq.db = db
-	tq.table = table
-	return tq
+// Update .
+func (db *DB) Update(table string) *UpdateQuery {
+	uq := new(UpdateQuery)
+	uq.db = db
+	uq.table = table
+	return uq
+}
+
+// Count .
+func (db *DB) Count(table string, count string) *CountQuery {
+	cq := new(CountQuery)
+	cq.db = db
+	cq.table = table
+	cq.count = count
+	return cq
+}
+
+// Delete .
+func (db *DB) Delete(table string) *DeleteQuery {
+	dq := new(DeleteQuery)
+	dq.db = db
+	dq.table = table
+	return dq
 }
