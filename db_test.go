@@ -6,25 +6,6 @@ import (
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 )
 
-func TestUpdate(t *testing.T) {
-	user := &User{
-		Role:   "admin",
-		Email:  "test@example.com",
-		Active: true,
-	}
-
-	mock.ExpectExec(`^update user set role = \?, email = \?, active = \? where id = \?$`).WithArgs(user.Role, user.Email, user.Active, user.ID).WillReturnResult(sqlmock.NewResult(1, 1))
-
-	if err := DB.Update(user); err != nil {
-		t.Errorf("error was not expected while deleting: %s", err)
-		return
-	}
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
-	}
-}
-
 func TestInsert(t *testing.T) {
 	user := &User{
 		Role:   "admin",
@@ -34,7 +15,7 @@ func TestInsert(t *testing.T) {
 
 	mock.ExpectExec(`^insert into user \(role, email, active\) values \(\?, \?, \?\)$`).WithArgs(user.Role, user.Email, user.Active).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	if err := DB.Insert(user); err != nil {
+	if _, err := DB.Insert(user); err != nil {
 		t.Errorf("error was not expected while inserting: %s", err)
 		return
 	}
@@ -45,31 +26,18 @@ func TestInsert(t *testing.T) {
 }
 
 func TestInsertErrors(t *testing.T) {
-	assertErr(t, "should return error if struct and not pointer to struct", DB.Insert(User{}))
+	_, err := DB.Insert(User{})
+	assertErr(t, "should return error if struct and not pointer to struct", err)
 
-	testMap := make(map[string]interface{})
-	assertErr(t, "should return error if pointer to non struct", DB.Insert(&testMap))
+	_, err2 := DB.Insert(User{})
+	assertErr(t, "should return error if pointer to non struct", err2)
 
 	type Post struct {
 		ID    int64
 		Title string
 	}
-	assertErr(t, "should return error if struct not registered", DB.Insert(&Post{}))
-}
-
-func TestDelete(t *testing.T) {
-	user := &User{ID: 5}
-
-	mock.ExpectExec(`^delete from user where id = \?$`).WithArgs(user.ID).WillReturnResult(sqlmock.NewResult(1, 1))
-
-	if err := DB.Delete(user); err != nil {
-		t.Errorf("error was not expected while deleting: %s", err)
-		return
-	}
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
-	}
+	_, err3 := DB.Insert(User{})
+	assertErr(t, "should return error if struct not registered", err3)
 }
 
 func TestExec(t *testing.T) {
