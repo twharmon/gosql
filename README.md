@@ -39,18 +39,16 @@ db.Select("*").Where("id = ?", 1).To(&user)
 
 // update the user
 user.Name = "Gopher"
-db.Update(&user)
+db.Update("user").Set("name = ?", user.Name).Where("id = ?", user.ID).Exec()
 
 // delete the user
-db.Delete(&user)
-// or
-db.Table("user").Where("id = ?", user.ID).Delete()
+db.Delete("user").Where("id = ?", user.ID).Exec()
 
 // count all users
-count, _ := db.Table("user").Count()
+count, _ := db.Count("user", "*").Exec()
 
 // count all active users
-count, _ := db.Table("user").Where("active = ?", true).Count()
+count, _ := db.Count("user", "*").Where("active = ?", true).Exec()
 
 ```
 
@@ -58,6 +56,3 @@ For full documentation see [godoc](https://godoc.org/github.com/twharmon/gosql).
 
 ## Contribute
 Make a pull request
-
-## Todo
-- document exported functions in comments

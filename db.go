@@ -46,28 +46,6 @@ func (db *DB) Insert(obj interface{}) (sql.Result, error) {
 	return db.db.Exec(m.insertQuery, m.getArgs(v)...)
 }
 
-// // Update .
-// func (db *DB) Update(obj interface{}) error {
-// 	m, err := getModelOf(obj)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	v := reflect.ValueOf(obj).Elem()
-// 	_, err = db.db.Exec(m.updateQuery, m.getArgsIDLast(v)...)
-// 	return err
-// }
-
-// // Delete .
-// func (db *DB) Delete(obj interface{}) error {
-// 	m, err := getModelOf(obj)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	v := reflect.ValueOf(obj).Elem()
-// 	_, err = db.db.Exec(m.deleteQuery, m.getIDArg(v))
-// 	return err
-// }
-
 // Exec .
 func (db *DB) Exec(query string, args ...interface{}) (sql.Result, error) {
 	return db.db.Exec(query, args...)
@@ -76,6 +54,11 @@ func (db *DB) Exec(query string, args ...interface{}) (sql.Result, error) {
 // Query .
 func (db *DB) Query(query string, args ...interface{}) (*sql.Rows, error) {
 	return db.db.Query(query, args...)
+}
+
+// QueryRow .
+func (db *DB) QueryRow(query string, args ...interface{}) *sql.Row {
+	return db.db.QueryRow(query, args...)
 }
 
 // Select .
