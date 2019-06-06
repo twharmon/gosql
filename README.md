@@ -31,7 +31,6 @@ newUser := User{
     Active: true,
 }
 db.Insert(&newUser)
-// newUser.ID is set after inserted into database
 
 // select a user
 var user User
