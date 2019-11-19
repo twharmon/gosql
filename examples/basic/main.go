@@ -47,6 +47,7 @@ func main() {
 		Password: "asdf",
 		IsAdmin:  true,
 		IsActive: true,
+		UserID:   99999999999,
 	}
 	res, err := db.Insert(&newUser)
 	if err != nil {

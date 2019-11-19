@@ -103,7 +103,7 @@ func (m *model) getFieldIndexByName(name string) int {
 func (m *model) getArgs(v reflect.Value) []interface{} {
 	var args []interface{}
 	for i := 0; i < m.fieldCount; i++ {
-		if m.primaryFieldIndex == i {
+		if m.primaryFieldIndex == i && v.IsZero() {
 			continue
 		}
 		args = append(args, v.Field(i).Interface())
