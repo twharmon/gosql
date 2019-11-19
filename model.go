@@ -108,19 +108,6 @@ func (m *model) getArgs(v reflect.Value) []interface{} {
 	return args
 }
 
-func (m *model) getArgsIDLast(v reflect.Value) []interface{} {
-	args := make([]interface{}, m.fieldCount)
-	for i := 1; i < m.fieldCount; i++ {
-		args[i-1] = v.Field(i).Interface()
-	}
-	args[m.fieldCount-1] = v.Field(0).Interface()
-	return args
-}
-
-func (m *model) getIDArg(v reflect.Value) interface{} {
-	return v.Field(0).Interface()
-}
-
 func getModelOf(obj interface{}) (*model, error) {
 	t := reflect.TypeOf(obj)
 	if t.Kind() != reflect.Ptr {
