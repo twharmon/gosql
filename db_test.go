@@ -25,6 +25,25 @@ func TestInsert(t *testing.T) {
 	}
 }
 
+func TestInsertPrimaryLast(t *testing.T) {
+	user := &UserPrimaryLast{
+		Role:   "admin",
+		Email:  "test@example.com",
+		Active: true,
+	}
+
+	mock.ExpectExec(`^insert into user_primary_last \(role, email, active\) values \(\?, \?, \?\)$`).WithArgs(user.Role, user.Email, user.Active).WillReturnResult(sqlmock.NewResult(1, 1))
+
+	if _, err := DB.Insert(user); err != nil {
+		t.Errorf("error was not expected while inserting: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
 func TestInsertErrors(t *testing.T) {
 	_, err := DB.Insert(User{})
 	assertErr(t, "should return error if struct and not pointer to struct", err)

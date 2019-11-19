@@ -13,7 +13,6 @@ type model struct {
 	fields            []string
 	fieldCount        int
 	primaryFieldIndex int
-	insertQuery       string
 	updateQuery       string
 	deleteQuery       string
 }
@@ -26,14 +25,18 @@ func init() {
 	models = make(modelMap)
 }
 
-func (m *model) setInsertQuery() {
+func (m *model) getInsertQuery(v reflect.Value) string {
 	var query strings.Builder
 	var values strings.Builder
 	query.WriteString("insert into ")
 	query.WriteString(m.table)
 	query.WriteString(" (")
 	for i := 0; i < m.fieldCount; i++ {
-		if m.primaryFieldIndex == i {
+		if m.primaryFieldIndex == i && v.Field(i).IsZero() {
+			if i == m.fieldCount-1 {
+				query.WriteString(") ")
+				values.WriteString(")")
+			}
 			continue
 		}
 		query.WriteString(m.fields[i])
@@ -41,14 +44,14 @@ func (m *model) setInsertQuery() {
 		if i == m.fieldCount-1 {
 			query.WriteString(") ")
 			values.WriteString(")")
-		} else {
+		} else if m.primaryFieldIndex != i+1 || m.primaryFieldIndex != m.fieldCount-1 {
 			query.WriteString(", ")
 			values.WriteString(", ")
 		}
 	}
 	query.WriteString("values (")
 	query.WriteString(values.String())
-	m.insertQuery = query.String()
+	return query.String()
 }
 
 func (m *model) setUpdateQuery() {
@@ -63,7 +66,9 @@ func (m *model) setUpdateQuery() {
 			query.WriteString(", ")
 		}
 	}
-	query.WriteString(" where id = ?")
+	query.WriteString(" where ")
+	query.WriteString(m.fields[m.primaryFieldIndex])
+	query.WriteString(" = ?")
 	m.updateQuery = query.String()
 }
 
@@ -71,7 +76,9 @@ func (m *model) setDeleteQuery() {
 	var query strings.Builder
 	query.WriteString("delete from ")
 	query.WriteString(m.table)
-	query.WriteString(" where id = ?")
+	query.WriteString(" where ")
+	query.WriteString(m.fields[m.primaryFieldIndex])
+	query.WriteString(" = ?")
 	m.deleteQuery = query.String()
 }
 
@@ -79,13 +86,9 @@ func (m *model) mustBeValid() {
 	if models[m.name] != nil {
 		panic(fmt.Sprintf("model %s found more than once", m.name))
 	}
-	// idField := m.typ.Field(0)
-	// if idField.Name != "ID" {
-	// 	panic(fmt.Sprintf("first field of %s must be ID", m.name))
-	// }
-	// if idField.Type.Kind() != reflect.Int64 {
-	// 	panic(fmt.Sprintf("%s.ID must have type int64", m.name))
-	// }
+	if m.primaryFieldIndex < 0 {
+		panic(fmt.Sprintf("model %s must have one and only one field tagged `gosql:\"primary\"`", m.name))
+	}
 }
 
 func (m *model) getFieldIndexByName(name string) int {
