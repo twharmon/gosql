@@ -82,16 +82,16 @@ func (sq *SelectQuery) To(out interface{}) error {
 	if t.Kind() != reflect.Ptr {
 		return fmt.Errorf("out must be a pointer")
 	}
-	e := t.Elem()
-	switch e.Kind() {
+	t = t.Elem()
+	switch t.Kind() {
 	case reflect.Struct:
-		sq.model = models[e.Name()]
+		sq.model = models[t.Name()]
 		if sq.model == nil {
-			return fmt.Errorf("you must first register %s", e.Name())
+			return fmt.Errorf("you must first register %s", t.Name())
 		}
 		return sq.toOne(out)
 	case reflect.Slice:
-		el := e.Elem()
+		el := t.Elem()
 		switch el.Kind() {
 		case reflect.Ptr:
 			el = el.Elem()
@@ -102,16 +102,16 @@ func (sq *SelectQuery) To(out interface{}) error {
 			if sq.model == nil {
 				return fmt.Errorf("you must first register %s", el.Name())
 			}
-			return sq.toMany(e, out)
+			return sq.toMany(t, out)
 		case reflect.Struct:
 			sq.model = models[el.Name()]
 			if sq.model == nil {
 				return fmt.Errorf("you must first register %s", el.Name())
 			}
-			return sq.toManyValues(e, out)
+			return sq.toManyValues(t, out)
 		}
 	}
-	return fmt.Errorf("out must be a struct, slice of structs, or slice of pointers to structs (%s found)", e.Kind().String())
+	return fmt.Errorf("out must be a struct, slice of structs, or slice of pointers to structs (%s found)", t.Kind().String())
 }
 
 func (sq *SelectQuery) toOne(out interface{}) error {
