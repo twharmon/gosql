@@ -7,14 +7,15 @@ import (
 )
 
 type model struct {
-	name        string
-	table       string
-	typ         reflect.Type
-	fields      []string
-	fieldCount  int
-	insertQuery string
-	updateQuery string
-	deleteQuery string
+	name              string
+	table             string
+	typ               reflect.Type
+	fields            []string
+	fieldCount        int
+	primaryFieldIndex int
+	insertQuery       string
+	updateQuery       string
+	deleteQuery       string
 }
 
 type modelMap map[string]*model
@@ -31,7 +32,10 @@ func (m *model) setInsertQuery() {
 	query.WriteString("insert into ")
 	query.WriteString(m.table)
 	query.WriteString(" (")
-	for i := 1; i < m.fieldCount; i++ {
+	for i := 0; i < m.fieldCount; i++ {
+		if m.primaryFieldIndex == i {
+			continue
+		}
 		query.WriteString(m.fields[i])
 		values.WriteString("?")
 		if i == m.fieldCount-1 {
@@ -75,13 +79,13 @@ func (m *model) mustBeValid() {
 	if models[m.name] != nil {
 		panic(fmt.Sprintf("model %s found more than once", m.name))
 	}
-	idField := m.typ.Field(0)
-	if idField.Name != "ID" {
-		panic(fmt.Sprintf("first field of %s must be ID", m.name))
-	}
-	if idField.Type.Kind() != reflect.Int64 {
-		panic(fmt.Sprintf("%s.ID must have type int64", m.name))
-	}
+	// idField := m.typ.Field(0)
+	// if idField.Name != "ID" {
+	// 	panic(fmt.Sprintf("first field of %s must be ID", m.name))
+	// }
+	// if idField.Type.Kind() != reflect.Int64 {
+	// 	panic(fmt.Sprintf("%s.ID must have type int64", m.name))
+	// }
 }
 
 func (m *model) getFieldIndexByName(name string) int {
@@ -94,24 +98,14 @@ func (m *model) getFieldIndexByName(name string) int {
 }
 
 func (m *model) getArgs(v reflect.Value) []interface{} {
-	args := make([]interface{}, m.fieldCount-1)
-	for i := 1; i < m.fieldCount; i++ {
-		args[i-1] = v.Field(i).Interface()
+	var args []interface{}
+	for i := 0; i < m.fieldCount; i++ {
+		if m.primaryFieldIndex == i {
+			continue
+		}
+		args = append(args, v.Field(i).Interface())
 	}
 	return args
-}
-
-func (m *model) getArgsIDLast(v reflect.Value) []interface{} {
-	args := make([]interface{}, m.fieldCount)
-	for i := 1; i < m.fieldCount; i++ {
-		args[i-1] = v.Field(i).Interface()
-	}
-	args[m.fieldCount-1] = v.Field(0).Interface()
-	return args
-}
-
-func (m *model) getIDArg(v reflect.Value) interface{} {
-	return v.Field(0).Interface()
 }
 
 func getModelOf(obj interface{}) (*model, error) {
