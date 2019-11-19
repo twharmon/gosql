@@ -34,20 +34,21 @@ func register(s interface{}) {
 	m.typ = typ
 	m.name = m.typ.Name()
 	m.table = toSnakeCase(m.name)
-	m.mustBeValid()
+	m.primaryFieldIndex = -1
 	for i := 0; i < m.typ.NumField(); i++ {
-		if !isField(m.typ.Field(i)) {
+		f := m.typ.Field(i)
+		if !isField(f) {
 			continue
 		}
-		tag, ok := m.typ.Field(i).Tag.Lookup("gosql")
+		tag, ok := f.Tag.Lookup("gosql")
 		if ok && tag == "primary" {
 			m.primaryFieldIndex = i
 		}
-		m.fields = append(m.fields, toSnakeCase(m.typ.Field(i).Name))
+		m.fields = append(m.fields, toSnakeCase(f.Name))
 	}
+	m.mustBeValid()
 	m.fieldCount = len(m.fields)
 	models[m.name] = m
-	m.setInsertQuery()
 	m.setUpdateQuery()
 	m.setDeleteQuery()
 }

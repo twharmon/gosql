@@ -11,7 +11,7 @@ import (
 // User .
 type User struct {
 	Email    string `json:"email"`
-	ID       int    `json:"id" gosql:"primary"`
+	UserID   int    `json:"id" gosql:"primary"`
 	Password string `json:"password"`
 	IsAdmin  bool   `json:"isAdmin"`
 	IsActive bool   `json:"isActive"`
@@ -47,10 +47,12 @@ func main() {
 		Password: "asdf",
 		IsAdmin:  true,
 		IsActive: true,
+		UserID:   99999999999,
 	}
 	res, err := db.Insert(&newUser)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println(res)
+	fmt.Println(res.RowsAffected())
+	fmt.Println(res.LastInsertId())
 }

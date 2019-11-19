@@ -22,6 +22,14 @@ type User struct {
 	Active bool   `json:"active"`
 }
 
+// UserPrimaryLast contains user information
+type UserPrimaryLast struct {
+	Role   string `json:"role"`
+	Email  string `json:"email"`
+	Active bool   `json:"active"`
+	UserID int64  `json:"userId" gosql:"primary"`
+}
+
 // ExpandedUser contains user information, and other fields not in db
 type ExpandedUser struct {
 	ID     int64  `json:"id" gosql:"primary"`
@@ -39,7 +47,7 @@ func init() {
 		panic(err)
 	}
 	DB = gosql.Conn(db)
-	gosql.Register(User{}, ExpandedUser{})
+	gosql.Register(User{}, ExpandedUser{}, UserPrimaryLast{})
 }
 
 func assertSame(control *User, test *User) error {

@@ -43,7 +43,7 @@ func (db *DB) Insert(obj interface{}) (sql.Result, error) {
 		return nil, err
 	}
 	v := reflect.ValueOf(obj).Elem()
-	return db.db.Exec(m.insertQuery, m.getArgs(v)...)
+	return db.db.Exec(m.getInsertQuery(v), m.getArgs(v)...)
 }
 
 // Exec .
