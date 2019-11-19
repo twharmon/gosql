@@ -49,8 +49,6 @@ func register(s interface{}) {
 	m.mustBeValid()
 	m.fieldCount = len(m.fields)
 	models[m.name] = m
-	m.setUpdateQuery()
-	m.setDeleteQuery()
 }
 
 // Conn returns a reference to DB.
