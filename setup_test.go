@@ -16,7 +16,7 @@ var mock sqlmock.Sqlmock
 
 // User contains user information
 type User struct {
-	ID     int64  `json:"id"`
+	ID     int64  `json:"id" gosql:"primary"`
 	Role   string `json:"role"`
 	Email  string `json:"email"`
 	Active bool   `json:"active"`
@@ -24,7 +24,7 @@ type User struct {
 
 // ExpandedUser contains user information, and other fields not in db
 type ExpandedUser struct {
-	ID     int64  `json:"id"`
+	ID     int64  `json:"id" gosql:"primary"`
 	Role   string `json:"role"`
 	Email  string `json:"email"`
 	Active bool   `json:"active"`
