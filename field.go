@@ -14,6 +14,7 @@ var fieldTypes = []string{
 	"int64",
 	"float32",
 	"float64",
+	"[]byte",
 	"gosql.NullInt64",
 	"gosql.NullString",
 	"gosql.NullFloat64",
