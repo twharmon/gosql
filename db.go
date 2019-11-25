@@ -2,6 +2,7 @@ package gosql
 
 import (
 	"database/sql"
+	"fmt"
 	"reflect"
 )
 
@@ -43,6 +44,8 @@ func (db *DB) Insert(obj interface{}) (sql.Result, error) {
 		return nil, err
 	}
 	v := reflect.ValueOf(obj).Elem()
+	fmt.Println(m.getArgs(v)...)
+	fmt.Println(m.getInsertQuery(v))
 	return db.db.Exec(m.getInsertQuery(v), m.getArgs(v)...)
 }
 
