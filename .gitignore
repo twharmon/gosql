@@ -1,1 +1,3 @@
 bench
+examples/basic/go.mod
+examples/basic/go.sum
