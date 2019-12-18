@@ -47,6 +47,7 @@ func (dq *DeleteQuery) Exec() (sql.Result, error) {
 	return dq.db.db.Exec(dq.String(), dq.whereArgs...)
 }
 
+// String returns the string representation of DeleteQuery.
 func (dq *DeleteQuery) String() string {
 	var q strings.Builder
 	q.WriteString("delete from ")

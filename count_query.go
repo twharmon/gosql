@@ -50,6 +50,7 @@ func (cq *CountQuery) Exec() (int64, error) {
 	return count, err
 }
 
+// String .
 func (cq *CountQuery) String() string {
 	var q strings.Builder
 
