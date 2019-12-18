@@ -119,7 +119,7 @@ func (sq *SelectQuery) toOne(out interface{}) error {
 	if !e.IsValid() {
 		return errors.New("out must not be a nil pointer")
 	}
-	row := sq.db.db.QueryRow(sq.string(), sq.args...)
+	row := sq.db.db.QueryRow(sq.String(), sq.args...)
 	err := row.Scan(sq.getDests(e)...)
 	if err == sql.ErrNoRows {
 		return ErrNotFound
@@ -129,7 +129,7 @@ func (sq *SelectQuery) toOne(out interface{}) error {
 
 func (sq *SelectQuery) toMany(sliceType reflect.Type, outs interface{}) error {
 	sq.many = true
-	rows, err := sq.db.db.Query(sq.string(), sq.args...)
+	rows, err := sq.db.db.Query(sq.String(), sq.args...)
 	if err != nil {
 		return err
 	}
@@ -151,7 +151,7 @@ func (sq *SelectQuery) toMany(sliceType reflect.Type, outs interface{}) error {
 
 func (sq *SelectQuery) toManyValues(sliceType reflect.Type, outs interface{}) error {
 	sq.many = true
-	rows, err := sq.db.db.Query(sq.string(), sq.args...)
+	rows, err := sq.db.db.Query(sq.String(), sq.args...)
 	if err != nil {
 		return err
 	}
@@ -170,7 +170,7 @@ func (sq *SelectQuery) toManyValues(sliceType reflect.Type, outs interface{}) er
 	return nil
 }
 
-func (sq *SelectQuery) string() string {
+func (sq *SelectQuery) String() string {
 	var q strings.Builder
 	q.WriteString("select ")
 	for i := 0; i < len(sq.fields)-1; i++ {

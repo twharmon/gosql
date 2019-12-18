@@ -55,10 +55,10 @@ func (uq *UpdateQuery) Join(join string) *UpdateQuery {
 func (uq *UpdateQuery) Exec() (sql.Result, error) {
 	args := uq.setArgs
 	args = append(args, uq.whereArgs...)
-	return uq.db.db.Exec(uq.string(), args...)
+	return uq.db.db.Exec(uq.String(), args...)
 }
 
-func (uq *UpdateQuery) string() string {
+func (uq *UpdateQuery) String() string {
 	var q strings.Builder
 	q.WriteString("update ")
 	q.WriteString(uq.table)

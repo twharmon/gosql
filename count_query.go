@@ -45,12 +45,12 @@ func (cq *CountQuery) Join(join string) *CountQuery {
 // Exec .
 func (cq *CountQuery) Exec() (int64, error) {
 	var count int64
-	row := cq.db.db.QueryRow(cq.string(), cq.whereArgs...)
+	row := cq.db.db.QueryRow(cq.String(), cq.whereArgs...)
 	err := row.Scan(&count)
 	return count, err
 }
 
-func (cq *CountQuery) string() string {
+func (cq *CountQuery) String() string {
 	var q strings.Builder
 
 	q.WriteString("select count(")
