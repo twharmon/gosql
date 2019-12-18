@@ -170,6 +170,7 @@ func (sq *SelectQuery) toManyValues(sliceType reflect.Type, outs interface{}) er
 	return nil
 }
 
+// String returns the string representation of SelectQuery.
 func (sq *SelectQuery) String() string {
 	var q strings.Builder
 	q.WriteString("select ")

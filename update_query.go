@@ -58,6 +58,7 @@ func (uq *UpdateQuery) Exec() (sql.Result, error) {
 	return uq.db.db.Exec(uq.String(), args...)
 }
 
+// String returns the string representation of UpdateQuery.
 func (uq *UpdateQuery) String() string {
 	var q strings.Builder
 	q.WriteString("update ")
