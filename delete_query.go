@@ -44,10 +44,10 @@ func (dq *DeleteQuery) Join(join string) *DeleteQuery {
 
 // Exec .
 func (dq *DeleteQuery) Exec() (sql.Result, error) {
-	return dq.db.db.Exec(dq.string(), dq.whereArgs...)
+	return dq.db.db.Exec(dq.String(), dq.whereArgs...)
 }
 
-func (dq *DeleteQuery) string() string {
+func (dq *DeleteQuery) String() string {
 	var q strings.Builder
 	q.WriteString("delete from ")
 	q.WriteString(dq.table)
