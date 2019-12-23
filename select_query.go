@@ -247,19 +247,3 @@ func (sq *SelectQuery) String() string {
 	}
 	return q.String()
 }
-
-func (sq *SelectQuery) getDests(v reflect.Value) []interface{} {
-	if strings.HasSuffix(sq.fields[0], "*") {
-		scans := make([]interface{}, sq.model.fieldCount)
-		for i := 0; i < sq.model.fieldCount; i++ {
-			scans[i] = v.Field(i).Addr().Interface()
-		}
-		return scans
-	}
-	fieldCount := len(sq.fields)
-	scans := make([]interface{}, fieldCount)
-	for i := 0; i < fieldCount; i++ {
-		scans[i] = v.Field(sq.model.getFieldIndexByName(sq.fields[i])).Addr().Interface()
-	}
-	return scans
-}
