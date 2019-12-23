@@ -37,10 +37,10 @@ func register(s interface{}) {
 	m.primaryFieldIndex = -1
 	for i := 0; i < m.typ.NumField(); i++ {
 		f := m.typ.Field(i)
-		if !isField(f) {
+		tag, ok := f.Tag.Lookup("gosql")
+		if ok && tag == "-" {
 			continue
 		}
-		tag, ok := f.Tag.Lookup("gosql")
 		if ok && tag == "primary" {
 			m.primaryFieldIndex = i
 		}

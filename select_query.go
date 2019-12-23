@@ -1,7 +1,6 @@
 package gosql
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"reflect"
@@ -119,12 +118,28 @@ func (sq *SelectQuery) toOne(out interface{}) error {
 	if !e.IsValid() {
 		return errors.New("out must not be a nil pointer")
 	}
-	row := sq.db.db.QueryRow(sq.String(), sq.args...)
-	err := row.Scan(sq.getDests(e)...)
-	if err == sql.ErrNoRows {
+	rows, err := sq.db.db.Query(sq.String(), sq.args...)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	columns, _ := rows.Columns()
+	fieldCount := len(columns)
+	found := false
+	for rows.Next() {
+		dests := make([]interface{}, fieldCount)
+		for j := 0; j < fieldCount; j++ {
+			dests[j] = e.Field(sq.model.getFieldIndexByName(columns[j])).Addr().Interface()
+		}
+		if err := rows.Scan(dests...); err != nil {
+			return err
+		}
+		found = true
+	}
+	if !found {
 		return ErrNotFound
 	}
-	return err
+	return nil
 }
 
 func (sq *SelectQuery) toMany(sliceType reflect.Type, outs interface{}) error {
@@ -136,9 +151,20 @@ func (sq *SelectQuery) toMany(sliceType reflect.Type, outs interface{}) error {
 	defer rows.Close()
 	newOuts := reflect.MakeSlice(sliceType, int(sq.limit), int(sq.limit))
 	i := 0
+	columns, _ := rows.Columns()
+	fieldCount := len(columns)
+	fieldIndecies := make([]int, fieldCount)
+	for j := 0; j < fieldCount; j++ {
+		fieldIndecies[j] = sq.model.getFieldIndexByName(columns[j])
+	}
+	dests := make([]interface{}, fieldCount)
 	for rows.Next() {
-		newOuts.Index(i).Set(reflect.New(sq.model.typ))
-		if err := rows.Scan(sq.getDests(newOuts.Index(i).Elem())...); err != nil {
+		newOut := newOuts.Index(i)
+		newOut.Set(reflect.New(sq.model.typ))
+		for j := 0; j < fieldCount; j++ {
+			dests[j] = newOut.Elem().Field(fieldIndecies[j]).Addr().Interface()
+		}
+		if err := rows.Scan(dests...); err != nil {
 			return err
 		}
 		i++
@@ -158,8 +184,20 @@ func (sq *SelectQuery) toManyValues(sliceType reflect.Type, outs interface{}) er
 	defer rows.Close()
 	newOuts := reflect.MakeSlice(sliceType, int(sq.limit), int(sq.limit))
 	i := 0
+	columns, _ := rows.Columns()
+	fieldCount := len(columns)
+	fieldIndecies := make([]int, fieldCount)
+	for j := 0; j < fieldCount; j++ {
+		fieldIndecies[j] = sq.model.getFieldIndexByName(columns[j])
+	}
+	dests := make([]interface{}, fieldCount)
+	newOut := newOuts.Index(0)
 	for rows.Next() {
-		if err := rows.Scan(sq.getDests(newOuts.Index(i))...); err != nil {
+		newOut = newOuts.Index(i)
+		for j := 0; j < fieldCount; j++ {
+			dests[j] = newOut.Field(fieldIndecies[j]).Addr().Interface()
+		}
+		if err := rows.Scan(dests...); err != nil {
 			return err
 		}
 		i++
@@ -208,20 +246,4 @@ func (sq *SelectQuery) String() string {
 		q.WriteString(strconv.FormatInt(sq.offset, 10))
 	}
 	return q.String()
-}
-
-func (sq *SelectQuery) getDests(v reflect.Value) []interface{} {
-	if strings.HasSuffix(sq.fields[0], "*") {
-		scans := make([]interface{}, sq.model.fieldCount)
-		for i := 0; i < sq.model.fieldCount; i++ {
-			scans[i] = v.Field(i).Addr().Interface()
-		}
-		return scans
-	}
-	fieldCount := len(sq.fields)
-	scans := make([]interface{}, fieldCount)
-	for i := 0; i < fieldCount; i++ {
-		scans[i] = v.Field(sq.model.getFieldIndexByName(sq.fields[i])).Addr().Interface()
-	}
-	return scans
 }
