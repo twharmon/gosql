@@ -2,6 +2,7 @@ package gosql
 
 import (
 	"testing"
+	"time"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 )
@@ -16,6 +17,66 @@ func TestInsert(t *testing.T) {
 	mock.ExpectExec(`^insert into user \(role, email, active\) values \(\?, \?, \?\)$`).WithArgs(user.Role, user.Email, user.Active).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	if _, err := DBConn.Insert(user); err != nil {
+		t.Errorf("error was not expected while inserting: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestInsertAllTypes(t *testing.T) {
+	all := &AllTypes{
+		Uint64:      5,
+		Int64:       5,
+		Uint:        5,
+		Int:         5,
+		String:      "gopher",
+		Float32:     5.5,
+		Float64:     5.5,
+		Blob:        []byte("gopher"),
+		Time:        time.Now(),
+		Bool:        true,
+		NullBool:    NullBool{Valid: true, Bool: true},
+		NullInt:     NullInt{Valid: true, Int: 5},
+		NullUint:    NullUint{Valid: true, Uint: 5},
+		NullUint64:  NullUint64{Valid: true, Uint64: 5},
+		NullString:  NullString{Valid: true, String: "gopher"},
+		NullTime:    NullTime{Valid: true, Time: time.Now()},
+		NullFloat32: NullFloat32{Valid: true, Float32: 5.5},
+		NullFloat64: NullFloat64{Valid: true, Float64: 5.5},
+	}
+	/*
+		driver.Value:
+			int64
+			float64
+			bool
+			[]byte
+			string
+			time.Time
+	*/
+	mock.ExpectExec(`^insert into all_types \(uint64, uint, int, int64, float32, float64, string, blob, bool, time, null_string, null_uint64, null_int64, null_int, null_uint, null_float64, null_float32, null_time, null_bool\) values \(\?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?\)$`).
+		WithArgs(all.Uint64, all.Uint, all.Int, all.Int64, all.Float32, all.Float64, all.String, all.Blob, all.Bool, all.Time, all.NullString, all.NullUint64, all.NullInt64, all.NullInt, all.NullUint, all.NullFloat64, all.NullFloat32, all.NullTime, all.NullBool).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	if _, err := DBConn.Insert(all); err != nil {
+		t.Errorf("error was not expected while inserting: %s", err)
+		return
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestInsertAllTypesNull(t *testing.T) {
+	all := &AllTypes{}
+	mock.ExpectExec(`^insert into all_types \(uint64, uint, int, int64, float32, float64, string, blob, bool, time, null_string, null_uint64, null_int64, null_int, null_uint, null_float64, null_float32, null_time, null_bool\) values \(\?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?\)$`).
+		WithArgs(all.Uint64, all.Uint, all.Int, all.Int64, all.Float32, all.Float64, all.String, all.Blob, all.Bool, all.Time, all.NullString, all.NullUint64, all.NullInt64, all.NullInt, all.NullUint, all.NullFloat64, all.NullFloat32, all.NullTime, all.NullBool).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	if _, err := DBConn.Insert(all); err != nil {
 		t.Errorf("error was not expected while inserting: %s", err)
 		return
 	}

@@ -3,6 +3,7 @@ package gosql
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"log"
 	"strconv"
 )
 
@@ -21,8 +22,10 @@ func (n *NullUint64) Scan(value interface{}) error {
 	n.Valid = true
 	switch value.(type) {
 	case uint64:
+		log.Println("uint64")
 		n.Uint64 = value.(uint64)
 	case []byte:
+		log.Println("[]byte")
 		i, err := strconv.ParseUint(string(value.([]byte)), 10, 64)
 		if err != nil {
 			return err

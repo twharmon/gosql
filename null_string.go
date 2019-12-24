@@ -17,7 +17,12 @@ func (n *NullString) Scan(value interface{}) error {
 		n.Valid = false
 		return nil
 	}
-	n.String, n.Valid = string(value.([]byte)), true
+	switch value.(type) {
+	case string:
+		n.String, n.Valid = value.(string), true
+	case []byte:
+		n.String, n.Valid = string(value.([]byte)), true
+	}
 	return nil
 }
 
