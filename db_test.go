@@ -1,4 +1,4 @@
-package gosql_test
+package gosql
 
 import (
 	"testing"
@@ -15,7 +15,7 @@ func TestInsert(t *testing.T) {
 
 	mock.ExpectExec(`^insert into user \(role, email, active\) values \(\?, \?, \?\)$`).WithArgs(user.Role, user.Email, user.Active).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	if _, err := DB.Insert(user); err != nil {
+	if _, err := DBConn.Insert(user); err != nil {
 		t.Errorf("error was not expected while inserting: %s", err)
 		return
 	}
@@ -35,7 +35,7 @@ func TestUpdate(t *testing.T) {
 
 	mock.ExpectExec(`^update user set role = \?, email = \?, active = \? where id = \?$`).WithArgs(user.Role, user.Email, user.Active, user.ID).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	q := DB.Update("user")
+	q := DBConn.Update("user")
 	q.Set("role = ?", user.Role)
 	q.Set("email = ?", user.Email)
 	q.Set("active = ?", user.Active)
@@ -54,7 +54,7 @@ func TestUpdate(t *testing.T) {
 func TestDelete(t *testing.T) {
 	mock.ExpectExec(`^delete from user where id = \?$`).WithArgs(1).WillReturnResult(sqlmock.NewResult(0, 1))
 
-	q := DB.Delete("user")
+	q := DBConn.Delete("user")
 	q.Where("id = ?", 1)
 
 	if _, err := q.Exec(); err != nil {
@@ -72,7 +72,7 @@ func TestCount(t *testing.T) {
 	rows.AddRow(10)
 	mock.ExpectQuery(`^select count\(\*\) from user where id > \?$`).WithArgs(10).WillReturnRows(rows)
 
-	q := DB.Count("user", "*")
+	q := DBConn.Count("user", "*")
 	q.Where("id > ?", 10)
 
 	if _, err := q.Exec(); err != nil {
@@ -94,7 +94,7 @@ func TestInsertPrimaryLast(t *testing.T) {
 
 	mock.ExpectExec(`^insert into user_primary_last \(role, email, active\) values \(\?, \?, \?\)$`).WithArgs(user.Role, user.Email, user.Active).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	if _, err := DB.Insert(user); err != nil {
+	if _, err := DBConn.Insert(user); err != nil {
 		t.Errorf("error was not expected while inserting: %s", err)
 		return
 	}
@@ -105,24 +105,24 @@ func TestInsertPrimaryLast(t *testing.T) {
 }
 
 func TestInsertErrors(t *testing.T) {
-	_, err := DB.Insert(User{})
+	_, err := DBConn.Insert(User{})
 	assertErr(t, "should return error if struct and not pointer to struct", err)
 
-	_, err2 := DB.Insert(User{})
+	_, err2 := DBConn.Insert(User{})
 	assertErr(t, "should return error if pointer to non struct", err2)
 
 	type Post struct {
 		ID    int64
 		Title string
 	}
-	_, err3 := DB.Insert(User{})
+	_, err3 := DBConn.Insert(User{})
 	assertErr(t, "should return error if struct not registered", err3)
 }
 
 func TestExec(t *testing.T) {
 	mock.ExpectExec(`^update user set email = \? where id = \?$`).WithArgs(1).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	if _, err := DB.Exec("update user set email = ? where id = ?", 1); err != nil {
+	if _, err := DBConn.Exec("update user set email = ? where id = ?", 1); err != nil {
 		t.Errorf("error was not expected while executing: %s", err)
 		return
 	}

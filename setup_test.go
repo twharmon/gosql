@@ -1,4 +1,4 @@
-package gosql_test
+package gosql
 
 import (
 	"database/sql"
@@ -8,10 +8,9 @@ import (
 	"github.com/twharmon/gofake"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
-	"github.com/twharmon/gosql"
 )
 
-var DB *gosql.DB
+var DBConn *DB
 var mock sqlmock.Sqlmock
 
 // User contains user information
@@ -46,8 +45,8 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	DB = gosql.Conn(db)
-	gosql.Register(User{}, ExpandedUser{}, UserPrimaryLast{})
+	DBConn = Conn(db)
+	Register(User{}, ExpandedUser{}, UserPrimaryLast{})
 }
 
 func assertSame(control *User, test *User) error {
@@ -86,7 +85,7 @@ func assertSameSlice(control []*User, test []*User) error {
 	if len(control) != len(test) {
 		return fmt.Errorf("control hand length %d, but test had length %d", len(control), len(test))
 	}
-	for i, _ := range control {
+	for i := range control {
 		if err := assertSame(control[i], test[i]); err != nil {
 			return err
 		}
@@ -98,7 +97,7 @@ func assertSameSliceValues(control []User, test []User) error {
 	if len(control) != len(test) {
 		return fmt.Errorf("control hand length %d, but test had length %d", len(control), len(test))
 	}
-	for i, _ := range control {
+	for i := range control {
 		if err := assertSame(&control[i], &test[i]); err != nil {
 			return err
 		}

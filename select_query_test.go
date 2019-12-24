@@ -1,10 +1,9 @@
-package gosql_test
+package gosql
 
 import (
 	"testing"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
-	"github.com/twharmon/gosql"
 )
 
 func TestBuilderSelectOneAllFields(t *testing.T) {
@@ -14,7 +13,7 @@ func TestBuilderSelectOneAllFields(t *testing.T) {
 	mock.ExpectQuery(`^select \* from user where id = \? limit 1$`).WithArgs(1).WillReturnRows(rows)
 
 	test := new(User)
-	if err := DB.Select("*").Where("id = ?", 1).To(test); err != nil {
+	if err := DBConn.Select("*").Where("id = ?", 1).To(test); err != nil {
 		t.Errorf("error was not expected while selecting: %s", err)
 		return
 	}
@@ -36,7 +35,7 @@ func TestBuilderSelectOneSomeFields(t *testing.T) {
 	mock.ExpectQuery(`^select email, active from user where id = \? limit 1$`).WithArgs(1).WillReturnRows(rows)
 
 	test := new(User)
-	if err := DB.Select("email", "active").Where("id = ?", 1).To(test); err != nil {
+	if err := DBConn.Select("email", "active").Where("id = ?", 1).To(test); err != nil {
 		t.Errorf("error was not expected while selecting: %s", err)
 		return
 	}
@@ -60,7 +59,7 @@ func TestBuilderSelectOneOneField(t *testing.T) {
 	mock.ExpectQuery(`^select email from user where id = \? limit 1$`).WithArgs(1).WillReturnRows(rows)
 
 	test := new(User)
-	if err := DB.Select("email").Where("id = ?", 1).To(test); err != nil {
+	if err := DBConn.Select("email").Where("id = ?", 1).To(test); err != nil {
 		t.Errorf("error was not expected while selecting: %s", err)
 		return
 	}
@@ -85,7 +84,7 @@ func TestBuilderSelectOneJoin(t *testing.T) {
 	mock.ExpectQuery(`^select user\.\* from user join post on post.user_id = user.id where user.id = \? limit 1$`).WithArgs(1).WillReturnRows(rows)
 
 	test := new(User)
-	if err := DB.Select("user.*").Where("user.id = ?", 1).Join("post on post.user_id = user.id").To(test); err != nil {
+	if err := DBConn.Select("user.*").Where("user.id = ?", 1).Join("post on post.user_id = user.id").To(test); err != nil {
 		t.Errorf("error was not expected while selecting: %s", err)
 		return
 	}
@@ -107,7 +106,7 @@ func TestBuilderSelectOneExpanded(t *testing.T) {
 	mock.ExpectQuery(`^select \* from expanded_user where id = \? limit 1$`).WithArgs(1).WillReturnRows(rows)
 
 	test := new(ExpandedUser)
-	if err := DB.Select("*").Where("id = ?", 1).To(test); err != nil {
+	if err := DBConn.Select("*").Where("id = ?", 1).To(test); err != nil {
 		t.Errorf("error was not expected while selecting: %s", err)
 		return
 	}
@@ -131,7 +130,7 @@ func TestBuilderSelectManyAllFields(t *testing.T) {
 	mock.ExpectQuery(`^select \* from user limit 1000$`).WillReturnRows(rows)
 
 	var test []*User
-	if err := DB.Select("*").To(&test); err != nil {
+	if err := DBConn.Select("*").To(&test); err != nil {
 		t.Errorf("error was not expected while selecting: %s", err)
 		return
 	}
@@ -148,13 +147,13 @@ func TestBuilderSelectManyAllFields(t *testing.T) {
 func TestBuilderSelectManyValuesSomeFields(t *testing.T) {
 	control := makeUserValuesSlice(3)
 	rows := sqlmock.NewRows([]string{"email", "active"})
-	for i, _ := range control {
+	for i := range control {
 		rows.AddRow(control[i].Email, control[i].Active)
 	}
 	mock.ExpectQuery(`^select email, active from user limit 1000$`).WillReturnRows(rows)
 
 	var test []User
-	if err := DB.Select("email", "active").To(&test); err != nil {
+	if err := DBConn.Select("email", "active").To(&test); err != nil {
 		t.Errorf("error was not expected while selecting: %s", err)
 		return
 	}
@@ -164,7 +163,7 @@ func TestBuilderSelectManyValuesSomeFields(t *testing.T) {
 		return
 	}
 
-	for i, _ := range control {
+	for i := range control {
 		test[i].ID = control[i].ID
 		test[i].Role = control[i].Role
 	}
@@ -175,13 +174,13 @@ func TestBuilderSelectManyValuesSomeFields(t *testing.T) {
 func TestBuilderSelectManyOneField(t *testing.T) {
 	control := makeUserSlice(3)
 	rows := sqlmock.NewRows([]string{"email"})
-	for i, _ := range control {
+	for i := range control {
 		rows.AddRow(control[i].Email)
 	}
 	mock.ExpectQuery(`^select email from user limit 1000$`).WillReturnRows(rows)
 
 	var test []*User
-	if err := DB.Select("email").To(&test); err != nil {
+	if err := DBConn.Select("email").To(&test); err != nil {
 		t.Errorf("error was not expected while selecting: %s", err)
 		return
 	}
@@ -191,7 +190,7 @@ func TestBuilderSelectManyOneField(t *testing.T) {
 		return
 	}
 
-	for i, _ := range control {
+	for i := range control {
 		test[i].ID = control[i].ID
 		test[i].Role = control[i].Role
 		test[i].Active = control[i].Active
@@ -204,13 +203,13 @@ func TestBuilderSelectManyOneField(t *testing.T) {
 func TestBuilderSelectManyLimit(t *testing.T) {
 	control := makeUserSlice(3)
 	rows := sqlmock.NewRows([]string{"id", "role", "email", "active"})
-	for i, _ := range control {
+	for i := range control {
 		rows.AddRow(control[i].ID, control[i].Role, control[i].Email, control[i].Active)
 	}
 	mock.ExpectQuery(`^select \* from user where id = \? limit 5$`).WithArgs(1).WillReturnRows(rows)
 
 	var test []*User
-	if err := DB.Select("*").Where("id = ?", 1).Limit(5).To(&test); err != nil {
+	if err := DBConn.Select("*").Where("id = ?", 1).Limit(5).To(&test); err != nil {
 		t.Errorf("error was not expected while selecting: %s", err)
 		return
 	}
@@ -228,13 +227,13 @@ func TestBuilderSelectManyLimit(t *testing.T) {
 func TestBuilderSelectManyOrderBy(t *testing.T) {
 	control := makeUserSlice(3)
 	rows := sqlmock.NewRows([]string{"id", "role", "email", "active"})
-	for i, _ := range control {
+	for i := range control {
 		rows.AddRow(control[i].ID, control[i].Role, control[i].Email, control[i].Active)
 	}
 	mock.ExpectQuery(`^select \* from user where id = \? order by email asc limit 1000$`).WithArgs(1).WillReturnRows(rows)
 
 	var test []*User
-	if err := DB.Select("*").Where("id = ?", 1).OrderBy("email asc").To(&test); err != nil {
+	if err := DBConn.Select("*").Where("id = ?", 1).OrderBy("email asc").To(&test); err != nil {
 		t.Errorf("error was not expected while selecting: %s", err)
 		return
 	}
@@ -252,13 +251,13 @@ func TestBuilderSelectManyOrderBy(t *testing.T) {
 func TestBuilderSelectManyOffset(t *testing.T) {
 	control := makeUserSlice(3)
 	rows := sqlmock.NewRows([]string{"id", "role", "email", "active"})
-	for i, _ := range control {
+	for i := range control {
 		rows.AddRow(control[i].ID, control[i].Role, control[i].Email, control[i].Active)
 	}
 	mock.ExpectQuery(`^select \* from user limit 1000 offset 5$`).WillReturnRows(rows)
 
 	var test []*User
-	if err := DB.Select("*").Offset(5).To(&test); err != nil {
+	if err := DBConn.Select("*").Offset(5).To(&test); err != nil {
 		t.Errorf("error was not expected while selecting: %s", err)
 		return
 	}
@@ -276,13 +275,13 @@ func TestBuilderSelectManyOffset(t *testing.T) {
 func TestBuilderSelectManyJoinSomeFields(t *testing.T) {
 	control := makeUserSlice(3)
 	rows := sqlmock.NewRows([]string{"email", "active"})
-	for i, _ := range control {
+	for i := range control {
 		rows.AddRow(control[i].Email, control[i].Active)
 	}
 	mock.ExpectQuery(`^select user\.email, user\.active from user join post on post.user_id = user.id limit 1000$`).WillReturnRows(rows)
 
 	var test []*User
-	if err := DB.Select("user.email", "user.active").Join("post on post.user_id = user.id").To(&test); err != nil {
+	if err := DBConn.Select("user.email", "user.active").Join("post on post.user_id = user.id").To(&test); err != nil {
 		t.Errorf("error was not expected while selecting: %s", err)
 		return
 	}
@@ -292,7 +291,7 @@ func TestBuilderSelectManyJoinSomeFields(t *testing.T) {
 		return
 	}
 
-	for i, _ := range control {
+	for i := range control {
 		test[i].ID = control[i].ID
 		test[i].Role = control[i].Role
 	}
@@ -304,8 +303,8 @@ func TestBuilderSelectManyJoinSomeFields(t *testing.T) {
 func TestBuilderSelectOneNoResult(t *testing.T) {
 	mock.ExpectQuery(`^select \* from user where id = \? limit 1$`).WithArgs(1).WillReturnRows(mock.NewRows([]string{}))
 
-	if err := DB.Select("*").Where("id = ?", 1).To(&User{}); err != gosql.ErrNotFound {
-		t.Errorf("expected gosql.ErrNotFound: got %s", err)
+	if err := DBConn.Select("*").Where("id = ?", 1).To(&User{}); err != ErrNotFound {
+		t.Errorf("expected ErrNotFound: got %s", err)
 		return
 	}
 
@@ -319,7 +318,7 @@ func TestBuilderSelectOneErrors(t *testing.T) {
 	assertErr(
 		t,
 		"should return error if non pointer passed to To",
-		DB.Select("*").Where("id = ?", 1).To(User{}),
+		DBConn.Select("*").Where("id = ?", 1).To(User{}),
 	)
 
 	type Post struct {
@@ -329,31 +328,31 @@ func TestBuilderSelectOneErrors(t *testing.T) {
 	assertErr(
 		t,
 		"should return error if unregistered struct passed to To",
-		DB.Select("*").Where("id = ?", 1).To(&Post{}),
+		DBConn.Select("*").Where("id = ?", 1).To(&Post{}),
 	)
 	assertErr(
 		t,
 		"should return error if slice of non pointers passed to To",
-		DB.Select("*").Where("id = ?", 1).To(&[]Post{}),
+		DBConn.Select("*").Where("id = ?", 1).To(&[]Post{}),
 	)
 
 	type testMap map[string]interface{}
 	assertErr(
 		t,
 		"should return error if slice of pointers to non structs passed to To",
-		DB.Select("*").Where("id = ?", 1).To(&[]*testMap{}),
+		DBConn.Select("*").Where("id = ?", 1).To(&[]*testMap{}),
 	)
 
 	assertErr(
 		t,
 		"should return error if slice of pointers to non registered items passed to To",
-		DB.Select("*").Where("id = ?", 1).To(&[]*Post{}),
+		DBConn.Select("*").Where("id = ?", 1).To(&[]*Post{}),
 	)
 
 	testStr := "asdf"
 	assertErr(
 		t,
 		"should return error if non struct and non slice passed to To",
-		DB.Select("*").Where("id = ?", 1).To(&testStr),
+		DBConn.Select("*").Where("id = ?", 1).To(&testStr),
 	)
 }

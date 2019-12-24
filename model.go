@@ -52,13 +52,14 @@ func (m *model) getInsertQuery(v reflect.Value) string {
 	return query.String()
 }
 
-func (m *model) mustBeValid() {
+func (m *model) mustBeValid() error {
 	if models[m.name] != nil {
-		panic(fmt.Sprintf("model %s found more than once", m.name))
+		return fmt.Errorf("model %s found more than once", m.name)
 	}
 	if m.primaryFieldIndex < 0 {
-		panic(fmt.Sprintf("model %s must have one and only one field tagged `gosql:\"primary\"`", m.name))
+		return fmt.Errorf("model %s must have one and only one field tagged `gosql:\"primary\"`", m.name)
 	}
+	return nil
 }
 
 func (m *model) getFieldIndexByName(name string) int {

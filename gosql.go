@@ -62,7 +62,9 @@ func register(s interface{}) error {
 		}
 		m.fields = append(m.fields, toSnakeCase(f.Name))
 	}
-	m.mustBeValid()
+	if err := m.mustBeValid(); err != nil {
+		return err
+	}
 	m.fieldCount = len(m.fields)
 	models[m.name] = m
 	return nil
