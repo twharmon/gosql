@@ -1,19 +1,15 @@
-package gosql_test
+package gosql
 
 import (
 	"testing"
-
-	"github.com/twharmon/gosql"
 )
 
 func TestRegister(t *testing.T) {
-	assertPanic(t, "should panic if non struct passed to Register", func() {
-		m := make(map[string]string)
-		gosql.Register(m)
-	})
+	m := make(map[string]string)
+	assertErr(t, "should return error if non struct passed to Register", Register(m))
 
-	assertPanic(t, "should panic if struct registered twice", func() {
-		type T struct{}
-		gosql.Register(T{}, T{})
-	})
+	type T struct {
+		ID uint64 `gosql:"primary"`
+	}
+	assertErr(t, "should return error if struct registered twice", Register(T{}, T{}))
 }
