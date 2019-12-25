@@ -52,6 +52,14 @@ func (m *model) getInsertQuery(v reflect.Value) string {
 	return query.String()
 }
 
+func (m *model) getUpdateQuery(v reflect.Value) string {
+	var query strings.Builder
+	query.WriteString("update ")
+	query.WriteString(m.table)
+	//
+	return query.String()
+}
+
 func (m *model) mustBeValid() error {
 	if models[m.name] != nil {
 		return fmt.Errorf("model %s found more than once", m.name)
