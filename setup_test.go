@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/twharmon/gofake"
 
@@ -19,6 +20,32 @@ type User struct {
 	Role   string `json:"role"`
 	Email  string `json:"email"`
 	Active bool   `json:"active"`
+}
+
+// AllTypes contains user information
+type AllTypes struct {
+	ID          uint64 `gosql:"primary"`
+	Uint64      uint64
+	Uint        uint
+	Int         int
+	Int64       int64
+	Float32     float32
+	Float64     float64
+	String      string
+	Blob        []byte
+	Bool        bool
+	Time        time.Time
+	NullString  NullString
+	NullUint64  NullUint64
+	NullUint32  NullUint32
+	NullInt64   NullInt64
+	NullInt32   NullInt32
+	NullInt     NullInt
+	NullUint    NullUint
+	NullFloat64 NullFloat64
+	NullFloat32 NullFloat32
+	NullTime    NullTime
+	NullBool    NullBool
 }
 
 // UserPrimaryLast contains user information
@@ -46,7 +73,7 @@ func init() {
 		panic(err)
 	}
 	DBConn = Conn(db)
-	Register(User{}, ExpandedUser{}, UserPrimaryLast{})
+	Register(User{}, ExpandedUser{}, UserPrimaryLast{}, AllTypes{})
 }
 
 func assertSame(control *User, test *User) error {

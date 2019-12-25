@@ -1,7 +1,9 @@
 package gosql
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 )
@@ -25,6 +27,511 @@ func TestBuilderSelectOneAllFields(t *testing.T) {
 
 	if err := assertSame(control, test); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestNullInt(t *testing.T) {
+	control := &AllTypes{
+		NullInt: NullInt{
+			Valid: true,
+			Int:   5,
+		},
+	}
+	rows := sqlmock.NewRows([]string{"null_int"})
+	rows.AddRow(control.NullInt.Int)
+	mock.ExpectQuery(`^select null_int from all_types limit 1$`).WillReturnRows(rows)
+	test := &AllTypes{
+		NullInt: NullInt{
+			Valid: true,
+			Int:   5,
+		},
+	}
+	if err := DBConn.Select("null_int").To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if control.NullInt != test.NullInt {
+		t.Error(fmt.Errorf("test did not match control: control.NullInt %v, test.NullInt %v", control.NullInt, test.NullInt))
+	}
+}
+
+func TestNullIntNull(t *testing.T) {
+	control := &AllTypes{
+		NullInt: NullInt{
+			Valid: false,
+		},
+	}
+	rows := sqlmock.NewRows([]string{"null_int"})
+	rows.AddRow(nil)
+	mock.ExpectQuery(`^select null_int from all_types limit 1$`).WillReturnRows(rows)
+	test := &AllTypes{
+		NullInt: NullInt{
+			Valid: false,
+		},
+	}
+	if err := DBConn.Select("null_int").To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if control.NullInt != test.NullInt {
+		t.Error(fmt.Errorf("test did not match control: control.NullInt %v, test.NullInt %v", control.NullInt, test.NullInt))
+	}
+}
+
+func TestNullInt64(t *testing.T) {
+	control := &AllTypes{
+		NullInt64: NullInt64{
+			Valid: true,
+			Int64: 5,
+		},
+	}
+	rows := sqlmock.NewRows([]string{"null_int64"})
+	rows.AddRow(control.NullInt64.Int64)
+	mock.ExpectQuery(`^select null_int64 from all_types limit 1$`).WillReturnRows(rows)
+	test := &AllTypes{
+		NullInt64: NullInt64{
+			Valid: true,
+			Int64: 5,
+		},
+	}
+	if err := DBConn.Select("null_int64").To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if control.NullInt64 != test.NullInt64 {
+		t.Error(fmt.Errorf("test did not match control: control.NullInt64 %v, test.NullInt64 %v", control.NullInt64, test.NullInt64))
+	}
+}
+
+func TestNullInt64Null(t *testing.T) {
+	control := &AllTypes{
+		NullInt64: NullInt64{
+			Valid: false,
+		},
+	}
+	rows := sqlmock.NewRows([]string{"null_int64"})
+	rows.AddRow(nil)
+	mock.ExpectQuery(`^select null_int64 from all_types limit 1$`).WillReturnRows(rows)
+	test := &AllTypes{
+		NullInt64: NullInt64{
+			Valid: false,
+		},
+	}
+	if err := DBConn.Select("null_int64").To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if control.NullInt64 != test.NullInt64 {
+		t.Error(fmt.Errorf("test did not match control: control.NullInt64 %v, test.NullInt64 %v", control.NullInt64, test.NullInt64))
+	}
+}
+
+func TestNullUint64(t *testing.T) {
+	control := &AllTypes{
+		NullUint64: NullUint64{
+			Valid:  true,
+			Uint64: 5,
+		},
+	}
+	rows := sqlmock.NewRows([]string{"null_uint64"})
+	rows.AddRow(control.NullUint64.Uint64)
+	mock.ExpectQuery(`^select null_uint64 from all_types limit 1$`).WillReturnRows(rows)
+	test := &AllTypes{
+		NullUint64: NullUint64{
+			Valid:  true,
+			Uint64: 5,
+		},
+	}
+	if err := DBConn.Select("null_uint64").To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if control.NullUint64 != test.NullUint64 {
+		t.Error(fmt.Errorf("test did not match control: control.NullUint64 %v, test.NullUint64 %v", control.NullUint64, test.NullUint64))
+	}
+}
+
+func TestNullUint64Null(t *testing.T) {
+	control := &AllTypes{
+		NullUint64: NullUint64{
+			Valid: false,
+		},
+	}
+	rows := sqlmock.NewRows([]string{"null_uint64"})
+	rows.AddRow(nil)
+	mock.ExpectQuery(`^select null_uint64 from all_types limit 1$`).WillReturnRows(rows)
+	test := &AllTypes{
+		NullUint64: NullUint64{
+			Valid: false,
+		},
+	}
+	if err := DBConn.Select("null_uint64").To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if control.NullUint64 != test.NullUint64 {
+		t.Error(fmt.Errorf("test did not match control: control.NullUint64 %v, test.NullUint64 %v", control.NullUint64, test.NullUint64))
+	}
+}
+
+func TestNullUint(t *testing.T) {
+	control := &AllTypes{
+		NullUint: NullUint{
+			Valid: true,
+			Uint:  5,
+		},
+	}
+	rows := sqlmock.NewRows([]string{"null_uint"})
+	rows.AddRow(control.NullUint.Uint)
+	mock.ExpectQuery(`^select null_uint from all_types limit 1$`).WillReturnRows(rows)
+	test := &AllTypes{
+		NullUint: NullUint{
+			Valid: true,
+			Uint:  5,
+		},
+	}
+	if err := DBConn.Select("null_uint").To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if control.NullUint != test.NullUint {
+		t.Error(fmt.Errorf("test did not match control: control.NullUint %v, test.NullUint %v", control.NullUint, test.NullUint))
+	}
+}
+
+func TestNullUintNull(t *testing.T) {
+	control := &AllTypes{
+		NullUint: NullUint{
+			Valid: false,
+		},
+	}
+	rows := sqlmock.NewRows([]string{"null_uint"})
+	rows.AddRow(nil)
+	mock.ExpectQuery(`^select null_uint from all_types limit 1$`).WillReturnRows(rows)
+	test := &AllTypes{
+		NullUint: NullUint{
+			Valid: false,
+		},
+	}
+	if err := DBConn.Select("null_uint").To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if control.NullUint != test.NullUint {
+		t.Error(fmt.Errorf("test did not match control: control.NullUint %v, test.NullUint %v", control.NullUint, test.NullUint))
+	}
+}
+
+func TestNullBool(t *testing.T) {
+	control := &AllTypes{
+		NullBool: NullBool{
+			Valid: true,
+			Bool:  true,
+		},
+	}
+	rows := sqlmock.NewRows([]string{"null_bool"})
+	rows.AddRow(control.NullBool.Bool)
+	mock.ExpectQuery(`^select null_bool from all_types limit 1$`).WillReturnRows(rows)
+	test := &AllTypes{
+		NullBool: NullBool{
+			Valid: true,
+			Bool:  true,
+		},
+	}
+	if err := DBConn.Select("null_bool").To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if control.NullBool != test.NullBool {
+		t.Error(fmt.Errorf("test did not match control: control.NullBool %v, test.NullBool %v", control.NullBool, test.NullBool))
+	}
+}
+
+func TestNullBoolNull(t *testing.T) {
+	control := &AllTypes{
+		NullBool: NullBool{
+			Valid: false,
+		},
+	}
+	rows := sqlmock.NewRows([]string{"null_bool"})
+	rows.AddRow(nil)
+	mock.ExpectQuery(`^select null_bool from all_types limit 1$`).WillReturnRows(rows)
+	test := &AllTypes{
+		NullBool: NullBool{
+			Valid: false,
+		},
+	}
+	if err := DBConn.Select("null_bool").To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if control.NullBool != test.NullBool {
+		t.Error(fmt.Errorf("test did not match control: control.NullBool %v, test.NullBool %v", control.NullBool, test.NullBool))
+	}
+}
+
+func TestNullTime(t *testing.T) {
+	now := time.Now()
+	control := &AllTypes{
+		NullTime: NullTime{
+			Valid: true,
+			Time:  now,
+		},
+	}
+	rows := sqlmock.NewRows([]string{"null_time"})
+	rows.AddRow(control.NullTime.Time)
+	mock.ExpectQuery(`^select null_time from all_types limit 1$`).WillReturnRows(rows)
+	test := &AllTypes{
+		NullTime: NullTime{
+			Valid: true,
+			Time:  now,
+		},
+	}
+	if err := DBConn.Select("null_time").To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if control.NullTime != test.NullTime {
+		t.Error(fmt.Errorf("test did not match control: control.NullTime %v, test.NullTime %v", control.NullTime, test.NullTime))
+	}
+}
+
+func TestNullTimeNull(t *testing.T) {
+	control := &AllTypes{
+		NullTime: NullTime{
+			Valid: false,
+		},
+	}
+	rows := sqlmock.NewRows([]string{"null_time"})
+	rows.AddRow(nil)
+	mock.ExpectQuery(`^select null_time from all_types limit 1$`).WillReturnRows(rows)
+	test := &AllTypes{
+		NullTime: NullTime{
+			Valid: false,
+		},
+	}
+	if err := DBConn.Select("null_time").To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if control.NullTime != test.NullTime {
+		t.Error(fmt.Errorf("test did not match control: control.NullTime %v, test.NullTime %v", control.NullTime, test.NullTime))
+	}
+}
+
+func TestNullFloat32(t *testing.T) {
+	control := &AllTypes{
+		NullFloat32: NullFloat32{
+			Valid:   true,
+			Float32: 5,
+		},
+	}
+	rows := sqlmock.NewRows([]string{"null_float32"})
+	rows.AddRow(control.NullTime.Time)
+	mock.ExpectQuery(`^select null_float32 from all_types limit 1$`).WillReturnRows(rows)
+	test := &AllTypes{
+		NullFloat32: NullFloat32{
+			Valid:   true,
+			Float32: 5,
+		},
+	}
+	if err := DBConn.Select("null_float32").To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if control.NullFloat32 != test.NullFloat32 {
+		t.Error(fmt.Errorf("test did not match control: control.NullFloat32 %v, test.NullFloat32 %v", control.NullFloat32, test.NullFloat32))
+	}
+}
+
+func TestNullFloat32Null(t *testing.T) {
+	control := &AllTypes{
+		NullFloat32: NullFloat32{
+			Valid: false,
+		},
+	}
+	rows := sqlmock.NewRows([]string{"null_float32"})
+	rows.AddRow(nil)
+	mock.ExpectQuery(`^select null_float32 from all_types limit 1$`).WillReturnRows(rows)
+	test := &AllTypes{
+		NullFloat32: NullFloat32{
+			Valid: false,
+		},
+	}
+	if err := DBConn.Select("null_float32").To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if control.NullFloat32 != test.NullFloat32 {
+		t.Error(fmt.Errorf("test did not match control: control.NullFloat32 %v, test.NullFloat32 %v", control.NullFloat32, test.NullFloat32))
+	}
+}
+
+func TestNullFloat64(t *testing.T) {
+	control := &AllTypes{
+		NullFloat64: NullFloat64{
+			Valid:   true,
+			Float64: 5,
+		},
+	}
+	rows := sqlmock.NewRows([]string{"null_float64"})
+	rows.AddRow(control.NullTime.Time)
+	mock.ExpectQuery(`^select null_float64 from all_types limit 1$`).WillReturnRows(rows)
+	test := &AllTypes{
+		NullFloat64: NullFloat64{
+			Valid:   true,
+			Float64: 5,
+		},
+	}
+	if err := DBConn.Select("null_float64").To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if control.NullFloat64 != test.NullFloat64 {
+		t.Error(fmt.Errorf("test did not match control: control.NullFloat64 %v, test.NullFloat64 %v", control.NullFloat64, test.NullFloat64))
+	}
+}
+
+func TestNullFloat64Null(t *testing.T) {
+	control := &AllTypes{
+		NullFloat64: NullFloat64{
+			Valid: false,
+		},
+	}
+	rows := sqlmock.NewRows([]string{"null_float64"})
+	rows.AddRow(nil)
+	mock.ExpectQuery(`^select null_float64 from all_types limit 1$`).WillReturnRows(rows)
+	test := &AllTypes{
+		NullFloat64: NullFloat64{
+			Valid: false,
+		},
+	}
+	if err := DBConn.Select("null_float64").To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if control.NullFloat64 != test.NullFloat64 {
+		t.Error(fmt.Errorf("test did not match control: control.NullFloat64 %v, test.NullFloat64 %v", control.NullFloat64, test.NullFloat64))
+	}
+}
+
+func TestNullString(t *testing.T) {
+	control := &AllTypes{
+		NullString: NullString{
+			Valid:  true,
+			String: "gopher",
+		},
+	}
+	rows := sqlmock.NewRows([]string{"null_string"})
+	rows.AddRow(control.NullString.String)
+	mock.ExpectQuery(`^select null_string from all_types limit 1$`).WillReturnRows(rows)
+	test := &AllTypes{
+		NullString: NullString{
+			Valid:  true,
+			String: "gopher",
+		},
+	}
+	if err := DBConn.Select("null_string").To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if control.NullString != test.NullString {
+		t.Error(fmt.Errorf("test did not match control: control.NullString %v, test.NullString %v", control.NullString, test.NullString))
+	}
+}
+
+func TestNullStringNull(t *testing.T) {
+	control := &AllTypes{
+		NullString: NullString{
+			Valid: false,
+		},
+	}
+	rows := sqlmock.NewRows([]string{"null_string"})
+	rows.AddRow(nil)
+	mock.ExpectQuery(`^select null_string from all_types limit 1$`).WillReturnRows(rows)
+	test := &AllTypes{
+		NullString: NullString{
+			Valid: false,
+		},
+	}
+	if err := DBConn.Select("null_string").To(test); err != nil {
+		t.Errorf("error was not expected while selecting: %s", err)
+		return
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+		return
+	}
+	if control.NullString != test.NullString {
+		t.Error(fmt.Errorf("test did not match control: control.NullString %v, test.NullString %v", control.NullString, test.NullString))
 	}
 }
 

@@ -2,6 +2,7 @@ package gosql
 
 import (
 	"database/sql/driver"
+	"encoding/binary"
 	"encoding/json"
 	"strconv"
 )
@@ -37,7 +38,9 @@ func (n NullUint) Value() (driver.Value, error) {
 	if !n.Valid {
 		return nil, nil
 	}
-	return n.Uint, nil
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, uint64(n.Uint))
+	return b, nil
 }
 
 // MarshalJSON .
