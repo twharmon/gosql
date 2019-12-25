@@ -40,24 +40,18 @@ func TestInsertAllTypes(t *testing.T) {
 		Bool:        true,
 		NullBool:    NullBool{Valid: true, Bool: true},
 		NullInt:     NullInt{Valid: true, Int: 5},
+		NullInt64:   NullInt64{Valid: true, Int64: 5},
+		NullInt32:   NullInt32{Valid: true, Int32: 5},
 		NullUint:    NullUint{Valid: true, Uint: 5},
 		NullUint64:  NullUint64{Valid: true, Uint64: 5},
+		NullUint32:  NullUint32{Valid: true, Uint32: 5},
 		NullString:  NullString{Valid: true, String: "gopher"},
 		NullTime:    NullTime{Valid: true, Time: time.Now()},
 		NullFloat32: NullFloat32{Valid: true, Float32: 5.5},
 		NullFloat64: NullFloat64{Valid: true, Float64: 5.5},
 	}
-	/*
-		driver.Value:
-			int64
-			float64
-			bool
-			[]byte
-			string
-			time.Time
-	*/
-	mock.ExpectExec(`^insert into all_types \(uint64, uint, int, int64, float32, float64, string, blob, bool, time, null_string, null_uint64, null_int64, null_int, null_uint, null_float64, null_float32, null_time, null_bool\) values \(\?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?\)$`).
-		WithArgs(all.Uint64, all.Uint, all.Int, all.Int64, all.Float32, all.Float64, all.String, all.Blob, all.Bool, all.Time, all.NullString, all.NullUint64, all.NullInt64, all.NullInt, all.NullUint, all.NullFloat64, all.NullFloat32, all.NullTime, all.NullBool).
+	mock.ExpectExec(`^insert into all_types \(uint64, uint, int, int64, float32, float64, string, blob, bool, time, null_string, null_uint64, null_uint32, null_int64, null_int32, null_int, null_uint, null_float64, null_float32, null_time, null_bool\) values \(\?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?\)$`).
+		WithArgs(all.Uint64, all.Uint, all.Int, all.Int64, all.Float32, all.Float64, all.String, all.Blob, all.Bool, all.Time, all.NullString, all.NullUint64, all.NullUint32, all.NullInt64, all.NullInt32, all.NullInt, all.NullUint, all.NullFloat64, all.NullFloat32, all.NullTime, all.NullBool).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	if _, err := DBConn.Insert(all); err != nil {
@@ -72,8 +66,8 @@ func TestInsertAllTypes(t *testing.T) {
 
 func TestInsertAllTypesNull(t *testing.T) {
 	all := &AllTypes{}
-	mock.ExpectExec(`^insert into all_types \(uint64, uint, int, int64, float32, float64, string, blob, bool, time, null_string, null_uint64, null_int64, null_int, null_uint, null_float64, null_float32, null_time, null_bool\) values \(\?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?\)$`).
-		WithArgs(all.Uint64, all.Uint, all.Int, all.Int64, all.Float32, all.Float64, all.String, all.Blob, all.Bool, all.Time, all.NullString, all.NullUint64, all.NullInt64, all.NullInt, all.NullUint, all.NullFloat64, all.NullFloat32, all.NullTime, all.NullBool).
+	mock.ExpectExec(`^insert into all_types \(uint64, uint, int, int64, float32, float64, string, blob, bool, time, null_string, null_uint64, null_uint32, null_int64, null_int32, null_int, null_uint, null_float64, null_float32, null_time, null_bool\) values \(\?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?\)$`).
+		WithArgs(all.Uint64, all.Uint, all.Int, all.Int64, all.Float32, all.Float64, all.String, all.Blob, all.Bool, all.Time, all.NullString, all.NullUint64, all.NullUint32, all.NullInt64, all.NullInt32, all.NullInt, all.NullUint, all.NullFloat64, all.NullFloat32, all.NullTime, all.NullBool).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	if _, err := DBConn.Insert(all); err != nil {

@@ -37,7 +37,9 @@ type AllTypes struct {
 	Time        time.Time
 	NullString  NullString
 	NullUint64  NullUint64
+	NullUint32  NullUint32
 	NullInt64   NullInt64
+	NullInt32   NullInt32
 	NullInt     NullInt
 	NullUint    NullUint
 	NullFloat64 NullFloat64

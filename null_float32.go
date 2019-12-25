@@ -37,7 +37,7 @@ func (n NullFloat32) Value() (driver.Value, error) {
 	if !n.Valid {
 		return nil, nil
 	}
-	return n.Float32, nil
+	return float64(n.Float32), nil
 }
 
 // MarshalJSON .
