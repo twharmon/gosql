@@ -46,6 +46,16 @@ func (db *DB) Insert(obj interface{}) (sql.Result, error) {
 	return db.db.Exec(m.getInsertQuery(v), m.getArgs(v)...)
 }
 
+// Save .
+func (db *DB) Save(obj interface{}) (sql.Result, error) {
+	m, err := getModelOf(obj)
+	if err != nil {
+		return nil, err
+	}
+	v := reflect.ValueOf(obj).Elem()
+	return db.db.Exec(m.getUpdateQuery(v), m.getArgsPrimaryLast(v)...)
+}
+
 // Exec .
 func (db *DB) Exec(query string, args ...interface{}) (sql.Result, error) {
 	return db.db.Exec(query, args...)

@@ -52,6 +52,27 @@ func (m *model) getInsertQuery(v reflect.Value) string {
 	return query.String()
 }
 
+func (m *model) getUpdateQuery(v reflect.Value) string {
+	var query strings.Builder
+	query.WriteString("update ")
+	query.WriteString(m.table)
+	query.WriteString(" set ")
+	for i := 0; i < m.fieldCount; i++ {
+		if m.primaryFieldIndex == i {
+			continue
+		}
+		query.WriteString(m.fields[i])
+		query.WriteString(" = ?")
+		if i < m.fieldCount-1 {
+			query.WriteString(", ")
+		}
+	}
+	query.WriteString(" where ")
+	query.WriteString(m.fields[m.primaryFieldIndex])
+	query.WriteString(" = ?")
+	return query.String()
+}
+
 func (m *model) mustBeValid() error {
 	if models[m.name] != nil {
 		return fmt.Errorf("model %s found more than once", m.name)
@@ -72,7 +93,7 @@ func (m *model) getFieldIndexByName(name string) int {
 }
 
 func (m *model) getArgs(v reflect.Value) []interface{} {
-	var args []interface{}
+	var args []interface{} // TODO: make()
 	for i := 0; i < m.fieldCount; i++ {
 		f := v.Field(i)
 		if m.primaryFieldIndex == i && f.IsZero() {
@@ -80,6 +101,30 @@ func (m *model) getArgs(v reflect.Value) []interface{} {
 		}
 		args = append(args, f.Interface())
 	}
+	return args
+}
+
+func (m *model) getArgsPrimaryLast(v reflect.Value) []interface{} {
+	args := make([]interface{}, m.fieldCount)
+	var primArg interface{}
+	i := 0
+	for {
+		if i == m.fieldCount {
+			break
+		}
+		arg := v.Field(i).Interface()
+		if m.primaryFieldIndex == i {
+			primArg = arg
+		} else {
+			if primArg == nil {
+				args[i] = arg
+			} else {
+				args[i-1] = arg
+			}
+		}
+		i++
+	}
+	args[m.fieldCount-1] = primArg
 	return args
 }
 
