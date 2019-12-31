@@ -863,3 +863,25 @@ func TestBuilderSelectOneErrors(t *testing.T) {
 		DBConn.Select("*").Where("id = ?", 1).To(&testStr),
 	)
 }
+
+func TestSelectOneToMany(t *testing.T) {
+	// control := makeUser()
+	// rows := sqlmock.NewRows([]string{"id", "role", "email", "active"})
+	// rows.AddRow(control.ID, control.Role, control.Email, control.Active)
+	// mock.ExpectQuery(`^select \* from user where id = \? limit 1$`).WithArgs(1).WillReturnRows(rows)
+
+	// test := new(User)
+	// if err := DBConn.Select("*").Where("id = ?", 1).To(test); err != nil {
+	// 	t.Errorf("error was not expected while selecting: %s", err)
+	// 	return
+	// }
+
+	// if err := mock.ExpectationsWereMet(); err != nil {
+	// 	t.Errorf("there were unfulfilled expectations: %s", err)
+	// 	return
+	// }
+
+	// if err := assertSame(control, test); err != nil {
+	// 	t.Error(err)
+	// }
+}

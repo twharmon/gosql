@@ -22,6 +22,53 @@ type User struct {
 	Active bool   `json:"active"`
 }
 
+/*
+Relationships: auto detect
+
+one to many:
+// User contains user information
+type User struct {
+	ID     int64  `json:"id" gosql:"primary"`
+	Role   string `json:"role"`
+	Email  string `json:"email"`
+	Active bool   `json:"active"`
+	Posts  []*Post
+}
+
+// Post contains user information
+type Post struct {
+	ID    int64 `json:"id" gosql:"primary"`
+	Title string
+	User  *User
+}
+
+user := User{ID: 5}
+var posts []Post
+DB.Select("*").BeloningTo(&user).To(&posts)
+
+many to many:
+// User contains user information
+type User struct {
+	ID     int64  `json:"id" gosql:"primary"`
+	Role   string `json:"role"`
+	Email  string `json:"email"`
+	Active bool   `json:"active"`
+	Posts  []*Post
+}
+
+// Post contains user information
+type Post struct {
+	ID    int64 `json:"id" gosql:"primary"`
+	Title string
+	Users  []*User
+}
+
+user := User{ID: 5}
+var posts []Post
+DB.Select("*").BeloningTo(&user).To(&posts)
+
+*/
+
 // AllTypes contains user information
 type AllTypes struct {
 	ID          uint64 `gosql:"primary"`

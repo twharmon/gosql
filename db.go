@@ -36,16 +36,6 @@ func (db *DB) SetMaxIdleConns(max int) {
 	db.db.SetMaxIdleConns(max)
 }
 
-// Insert .
-func (db *DB) Insert(obj interface{}) (sql.Result, error) {
-	m, err := getModelOf(obj)
-	if err != nil {
-		return nil, err
-	}
-	v := reflect.ValueOf(obj).Elem()
-	return db.db.Exec(m.getInsertQuery(v), m.getArgs(v)...)
-}
-
 // Save .
 func (db *DB) Save(obj interface{}) (sql.Result, error) {
 	m, err := getModelOf(obj)
@@ -53,8 +43,18 @@ func (db *DB) Save(obj interface{}) (sql.Result, error) {
 		return nil, err
 	}
 	v := reflect.ValueOf(obj).Elem()
-	return db.db.Exec(m.getUpdateQuery(v), m.getArgsPrimaryLast(v)...)
+	return db.db.Exec(m.getInsertOrUpdateQuery(v), m.getArgs(v)...)
 }
+
+// // Save .
+// func (db *DB) Save(obj interface{}) (sql.Result, error) {
+// 	m, err := getModelOf(obj)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	v := reflect.ValueOf(obj).Elem()
+// 	return db.db.Exec(m.getUpdateQuery(v), m.getArgsPrimaryLast(v)...)
+// }
 
 // Exec .
 func (db *DB) Exec(query string, args ...interface{}) (sql.Result, error) {

@@ -13,6 +13,9 @@ type model struct {
 	fields            []string
 	fieldCount        int
 	primaryFieldIndex int
+	oneToManys        []*model
+	manyToOnes        []*model
+	manyToManys       []*model
 }
 
 type modelMap map[string]*model
@@ -23,7 +26,16 @@ func init() {
 	models = make(modelMap)
 }
 
-func (m *model) getInsertQuery(v reflect.Value) string {
+func (m *model) setRelationships() error {
+	// for _, f := range m.fields {
+	// 	for _, relative := range models {
+	// 		// if relative.table
+	// 	}
+	// }
+	return nil
+}
+
+func (m *model) getInsertOrUpdateQuery(v reflect.Value) string {
 	var query strings.Builder
 	var values strings.Builder
 	query.WriteString("insert into ")
@@ -49,6 +61,7 @@ func (m *model) getInsertQuery(v reflect.Value) string {
 	}
 	query.WriteString("values (")
 	query.WriteString(values.String())
+	query.WriteString(" on duplicate key update")
 	return query.String()
 }
 
@@ -93,7 +106,7 @@ func (m *model) getFieldIndexByName(name string) int {
 }
 
 func (m *model) getArgs(v reflect.Value) []interface{} {
-	var args []interface{} // TODO: make()
+	var args []interface{}
 	for i := 0; i < m.fieldCount; i++ {
 		f := v.Field(i)
 		if m.primaryFieldIndex == i && f.IsZero() {
