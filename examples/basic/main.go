@@ -20,16 +20,6 @@ type User struct {
 	IsActive bool   `json:"isActive"`
 	F        gosql.NullFloat32
 	D        float64
-	Posts    []*Post `gosql:"-"`
-}
-
-// Post .
-type Post struct {
-	ID        uint64 `json:"id" gosql:"primary"`
-	Title     string `size:"255"`
-	Body      string `size:"65535"`
-	Published bool
-	Author    *User
 }
 
 var db *gosql.DB
@@ -46,7 +36,7 @@ func init() {
 		log.Fatalln(err)
 	}
 
-	if err := gosql.Register(User{}, Post{}); err != nil {
+	if err := gosql.Register(User{}); err != nil {
 		log.Fatalln(err)
 	}
 	db = gosql.Conn(database)
