@@ -26,25 +26,25 @@ func TestInsert(t *testing.T) {
 	}
 }
 
-// func TestSave(t *testing.T) {
-// 	user := &User{
-// 		ID:     5,
-// 		Role:   "admin",
-// 		Email:  "test@example.com",
-// 		Active: true,
-// 	}
+func TestUpdate(t *testing.T) {
+	user := &User{
+		ID:     5,
+		Role:   "admin",
+		Email:  "test@example.com",
+		Active: true,
+	}
 
-// 	mock.ExpectExec(`^update user set role = \?, email = \?, active = \? where id = \?$`).WithArgs(user.Role, user.Email, user.Active, user.ID).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec(`^update user set role = \?, email = \?, active = \? where id = \?$`).WithArgs(user.Role, user.Email, user.Active, user.ID).WillReturnResult(sqlmock.NewResult(1, 1))
 
-// 	if _, err := DBConn.Save(user); err != nil {
-// 		t.Errorf("error was not expected while inserting: %s", err)
-// 		return
-// 	}
+	if _, err := DBConn.Update(user); err != nil {
+		t.Errorf("error was not expected while inserting: %s", err)
+		return
+	}
 
-// 	if err := mock.ExpectationsWereMet(); err != nil {
-// 		t.Errorf("there were unfulfilled expectations: %s", err)
-// 	}
-// }
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
 
 func TestInsertAllTypes(t *testing.T) {
 	all := &AllTypes{
@@ -100,7 +100,7 @@ func TestInsertAllTypesNull(t *testing.T) {
 	}
 }
 
-func TestUpdate(t *testing.T) {
+func TestManualUpdate(t *testing.T) {
 	user := &User{
 		ID:     5,
 		Role:   "admin",
@@ -126,7 +126,7 @@ func TestUpdate(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestManualDelete(t *testing.T) {
 	mock.ExpectExec(`^delete from user where id = \?$`).WithArgs(1).WillReturnResult(sqlmock.NewResult(0, 1))
 
 	q := DBConn.ManualDelete("user")

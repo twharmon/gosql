@@ -53,7 +53,7 @@ func (db *DB) Update(obj interface{}) (sql.Result, error) {
 		return nil, err
 	}
 	v := reflect.ValueOf(obj).Elem()
-	return db.db.Exec(m.getUpdateQuery(v), m.getArgs(v)...)
+	return db.db.Exec(m.getUpdateQuery(v), m.getArgsPrimaryLast(v)...)
 }
 
 // Exec .
