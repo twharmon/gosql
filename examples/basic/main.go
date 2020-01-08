@@ -66,7 +66,6 @@ func main() {
 	}
 	fmt.Println(res.RowsAffected())
 	fmt.Println(res.LastInsertId())
-
 }
 
 func sizeOf(f reflect.StructField) uint64 {
