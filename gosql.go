@@ -26,11 +26,6 @@ func Register(structs ...interface{}) error {
 			return err
 		}
 	}
-	for _, m := range models {
-		if err := m.setRelationships(); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 

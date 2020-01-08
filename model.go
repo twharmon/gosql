@@ -13,9 +13,12 @@ type model struct {
 	fields            []string
 	fieldCount        int
 	primaryFieldIndex int
-	oneToManys        []*model
-	manyToOnes        []*model
-	manyToManys       []*model
+	// oneToManys        []*model
+	// manyToOnes        []*model
+	// manyToManys       []*model
+	oneToManys  map[string]*model
+	manyToOnes  map[string]*model
+	manyToManys map[string]*model
 }
 
 type modelMap map[string]*model
@@ -26,16 +29,7 @@ func init() {
 	models = make(modelMap)
 }
 
-func (m *model) setRelationships() error {
-	// for _, f := range m.fields {
-	// 	for _, relative := range models {
-	// 		// if relative.table
-	// 	}
-	// }
-	return nil
-}
-
-func (m *model) getInsertOrUpdateQuery(v reflect.Value) string {
+func (m *model) getInsertQuery(v reflect.Value) string {
 	var query strings.Builder
 	var values strings.Builder
 	query.WriteString("insert into ")
@@ -61,7 +55,6 @@ func (m *model) getInsertOrUpdateQuery(v reflect.Value) string {
 	}
 	query.WriteString("values (")
 	query.WriteString(values.String())
-	query.WriteString(" on duplicate key update")
 	return query.String()
 }
 

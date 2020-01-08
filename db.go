@@ -36,25 +36,25 @@ func (db *DB) SetMaxIdleConns(max int) {
 	db.db.SetMaxIdleConns(max)
 }
 
-// Save .
-func (db *DB) Save(obj interface{}) (sql.Result, error) {
+// Insert .
+func (db *DB) Insert(obj interface{}) (sql.Result, error) {
 	m, err := getModelOf(obj)
 	if err != nil {
 		return nil, err
 	}
 	v := reflect.ValueOf(obj).Elem()
-	return db.db.Exec(m.getInsertOrUpdateQuery(v), m.getArgs(v)...)
+	return db.db.Exec(m.getInsertQuery(v), m.getArgs(v)...)
 }
 
-// // Save .
-// func (db *DB) Save(obj interface{}) (sql.Result, error) {
-// 	m, err := getModelOf(obj)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	v := reflect.ValueOf(obj).Elem()
-// 	return db.db.Exec(m.getUpdateQuery(v), m.getArgsPrimaryLast(v)...)
-// }
+// Update .
+func (db *DB) Update(obj interface{}) (sql.Result, error) {
+	m, err := getModelOf(obj)
+	if err != nil {
+		return nil, err
+	}
+	v := reflect.ValueOf(obj).Elem()
+	return db.db.Exec(m.getUpdateQuery(v), m.getArgs(v)...)
+}
 
 // Exec .
 func (db *DB) Exec(query string, args ...interface{}) (sql.Result, error) {
@@ -80,8 +80,8 @@ func (db *DB) Select(fields ...string) *SelectQuery {
 	return sq
 }
 
-// Update .
-func (db *DB) Update(table string) *UpdateQuery {
+// ManualUpdate .
+func (db *DB) ManualUpdate(table string) *UpdateQuery {
 	uq := new(UpdateQuery)
 	uq.db = db
 	uq.table = table
@@ -97,8 +97,8 @@ func (db *DB) Count(table string, count string) *CountQuery {
 	return cq
 }
 
-// Delete .
-func (db *DB) Delete(table string) *DeleteQuery {
+// ManualDelete .
+func (db *DB) ManualDelete(table string) *DeleteQuery {
 	dq := new(DeleteQuery)
 	dq.db = db
 	dq.table = table
