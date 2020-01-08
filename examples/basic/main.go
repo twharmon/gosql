@@ -13,8 +13,8 @@ import (
 
 // User .
 type User struct {
-	Email    string `json:"email" size:"255"`
 	ID       uint   `json:"id" gosql:"primary"`
+	Email    string `json:"email" size:"255"`
 	Password string `json:"password" size:"100"`
 	IsAdmin  bool   `json:"isAdmin"`
 	IsActive bool   `json:"isActive"`

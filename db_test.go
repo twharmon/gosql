@@ -26,7 +26,7 @@ func TestInsert(t *testing.T) {
 	}
 }
 
-func TestSave(t *testing.T) {
+func TestUpdate(t *testing.T) {
 	user := &User{
 		ID:     5,
 		Role:   "admin",
@@ -36,7 +36,7 @@ func TestSave(t *testing.T) {
 
 	mock.ExpectExec(`^update user set role = \?, email = \?, active = \? where id = \?$`).WithArgs(user.Role, user.Email, user.Active, user.ID).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	if _, err := DBConn.Save(user); err != nil {
+	if _, err := DBConn.Update(user); err != nil {
 		t.Errorf("error was not expected while inserting: %s", err)
 		return
 	}
@@ -100,7 +100,7 @@ func TestInsertAllTypesNull(t *testing.T) {
 	}
 }
 
-func TestUpdate(t *testing.T) {
+func TestManualUpdate(t *testing.T) {
 	user := &User{
 		ID:     5,
 		Role:   "admin",
@@ -110,7 +110,7 @@ func TestUpdate(t *testing.T) {
 
 	mock.ExpectExec(`^update user set role = \?, email = \?, active = \? where id = \?$`).WithArgs(user.Role, user.Email, user.Active, user.ID).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	q := DBConn.Update("user")
+	q := DBConn.ManualUpdate("user")
 	q.Set("role = ?", user.Role)
 	q.Set("email = ?", user.Email)
 	q.Set("active = ?", user.Active)
@@ -126,10 +126,10 @@ func TestUpdate(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestManualDelete(t *testing.T) {
 	mock.ExpectExec(`^delete from user where id = \?$`).WithArgs(1).WillReturnResult(sqlmock.NewResult(0, 1))
 
-	q := DBConn.Delete("user")
+	q := DBConn.ManualDelete("user")
 	q.Where("id = ?", 1)
 
 	if _, err := q.Exec(); err != nil {

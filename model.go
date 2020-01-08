@@ -93,7 +93,7 @@ func (m *model) getFieldIndexByName(name string) int {
 }
 
 func (m *model) getArgs(v reflect.Value) []interface{} {
-	var args []interface{} // TODO: make()
+	var args []interface{}
 	for i := 0; i < m.fieldCount; i++ {
 		f := v.Field(i)
 		if m.primaryFieldIndex == i && f.IsZero() {
