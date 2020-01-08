@@ -13,12 +13,6 @@ type model struct {
 	fields            []string
 	fieldCount        int
 	primaryFieldIndex int
-	// oneToManys        []*model
-	// manyToOnes        []*model
-	// manyToManys       []*model
-	oneToManys  map[string]*model
-	manyToOnes  map[string]*model
-	manyToManys map[string]*model
 }
 
 type modelMap map[string]*model
