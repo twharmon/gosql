@@ -52,6 +52,16 @@ func (m *model) getInsertQuery(v reflect.Value) string {
 	return query.String()
 }
 
+func (m *model) getDeleteQuery(v reflect.Value) string {
+	var query strings.Builder
+	query.WriteString("delete from ")
+	query.WriteString(m.table)
+	query.WriteString(" where ")
+	query.WriteString(m.fields[m.primaryFieldIndex])
+	query.WriteString(" = ?")
+	return query.String()
+}
+
 func (m *model) getUpdateQuery(v reflect.Value) string {
 	var query strings.Builder
 	query.WriteString("update ")

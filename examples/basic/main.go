@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"reflect"
-	"strconv"
 
 	"github.com/twharmon/gosql"
 )
@@ -18,7 +16,7 @@ type User struct {
 	Password string `json:"password" size:"100"`
 	IsAdmin  bool   `json:"isAdmin"`
 	IsActive bool   `json:"isActive"`
-	F        gosql.NullFloat32
+	F        sql.NullFloat64
 	D        float64
 }
 
@@ -40,9 +38,6 @@ func init() {
 		log.Fatalln(err)
 	}
 	db = gosql.Conn(database)
-	if err := gosql.CheckSchema(db, sizeOf); err != nil {
-		log.Fatalln(err)
-	}
 }
 
 func main() {
@@ -66,16 +61,4 @@ func main() {
 	}
 	fmt.Println(res.RowsAffected())
 	fmt.Println(res.LastInsertId())
-}
-
-func sizeOf(f reflect.StructField) uint64 {
-	tag, ok := f.Tag.Lookup("size")
-	if !ok {
-		return 0
-	}
-	size, err := strconv.ParseUint(tag, 10, 64)
-	if err != nil {
-		panic(err)
-	}
-	return size
 }

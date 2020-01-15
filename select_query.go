@@ -90,6 +90,9 @@ func (sq *SelectQuery) To(out interface{}) error {
 		}
 		return sq.toOne(out)
 	case reflect.Slice:
+		if sq.limit == 0 {
+			return errors.New("limit must be set and not zero when selecting multiple rows")
+		}
 		el := t.Elem()
 		switch el.Kind() {
 		case reflect.Ptr:

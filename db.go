@@ -56,6 +56,16 @@ func (db *DB) Update(obj interface{}) (sql.Result, error) {
 	return db.db.Exec(m.getUpdateQuery(v), m.getArgsPrimaryLast(v)...)
 }
 
+// Delete .
+func (db *DB) Delete(obj interface{}) (sql.Result, error) {
+	m, err := getModelOf(obj)
+	if err != nil {
+		return nil, err
+	}
+	v := reflect.ValueOf(obj).Elem()
+	return db.db.Exec(m.getDeleteQuery(v), v.Field(m.primaryFieldIndex).Interface())
+}
+
 // Exec .
 func (db *DB) Exec(query string, args ...interface{}) (sql.Result, error) {
 	return db.db.Exec(query, args...)
@@ -76,7 +86,6 @@ func (db *DB) Select(fields ...string) *SelectQuery {
 	sq := new(SelectQuery)
 	sq.db = db
 	sq.fields = fields
-	sq.limit = 1000
 	return sq
 }
 
