@@ -4,54 +4,53 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/twharmon/gosql"
 )
 
 func TestSelectQueryOne(t *testing.T) {
-	type SelectQueryOneModel struct {
+	db, mock, err := getMockDB()
+	check(t, err)
+	type T struct {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, gosql.Register(SelectQueryOneModel{}))
-	control := SelectQueryOneModel{
+	check(t, db.Register(T{}))
+	control := T{
 		ID:   5,
 		Name: "foo",
 	}
-	db, mock, err := getMockDB()
-	check(t, err)
 	rows := sqlmock.NewRows([]string{"id", "name"})
 	rows.AddRow(control.ID, control.Name)
-	mock.ExpectQuery(`^select \* from select_query_one_model where id = \? limit 1$`).WithArgs(control.ID).WillReturnRows(rows)
-	var test SelectQueryOneModel
+	mock.ExpectQuery(`^select \* from t where id = \? limit 1$`).WithArgs(control.ID).WillReturnRows(rows)
+	var test T
 	check(t, db.Select("*").Where("id = ?", control.ID).To(&test))
 	check(t, mock.ExpectationsWereMet())
 	equals(t, control, test)
 }
 
 func TestSelectQueryMany(t *testing.T) {
-	type SelectQueryManyModel struct {
+	db, mock, err := getMockDB()
+	check(t, err)
+	type T struct {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, gosql.Register(SelectQueryManyModel{}))
-	control := []*SelectQueryManyModel{
-		&SelectQueryManyModel{
+	check(t, db.Register(T{}))
+	control := []*T{
+		&T{
 			ID:   5,
 			Name: "foo",
 		},
-		&SelectQueryManyModel{
+		&T{
 			ID:   6,
 			Name: "bar",
 		},
 	}
-	db, mock, err := getMockDB()
-	check(t, err)
 	rows := sqlmock.NewRows([]string{"id", "name"})
 	for _, c := range control {
 		rows.AddRow(c.ID, c.Name)
 	}
-	mock.ExpectQuery(`^select \* from select_query_many_model limit 10$`).WillReturnRows(rows)
-	var test []*SelectQueryManyModel
+	mock.ExpectQuery(`^select \* from t limit 10$`).WillReturnRows(rows)
+	var test []*T
 	check(t, db.Select("*").Limit(10).To(&test))
 	check(t, mock.ExpectationsWereMet())
 	for i := 0; i < len(control); i++ {
@@ -60,29 +59,29 @@ func TestSelectQueryMany(t *testing.T) {
 }
 
 func TestSelectQueryManyValues(t *testing.T) {
-	type SelectQueryManyValuesModel struct {
+	db, mock, err := getMockDB()
+	check(t, err)
+	type T struct {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, gosql.Register(SelectQueryManyValuesModel{}))
-	control := []SelectQueryManyValuesModel{
-		SelectQueryManyValuesModel{
+	check(t, db.Register(T{}))
+	control := []T{
+		T{
 			ID:   5,
 			Name: "foo",
 		},
-		SelectQueryManyValuesModel{
+		T{
 			ID:   6,
 			Name: "bar",
 		},
 	}
-	db, mock, err := getMockDB()
-	check(t, err)
 	rows := sqlmock.NewRows([]string{"id", "name"})
 	for _, c := range control {
 		rows.AddRow(c.ID, c.Name)
 	}
-	mock.ExpectQuery(`^select \* from select_query_many_values_model limit 10$`).WillReturnRows(rows)
-	var test []SelectQueryManyValuesModel
+	mock.ExpectQuery(`^select \* from t limit 10$`).WillReturnRows(rows)
+	var test []T
 	check(t, db.Select("*").Limit(10).To(&test))
 	check(t, mock.ExpectationsWereMet())
 	for i := 0; i < len(control); i++ {

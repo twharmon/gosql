@@ -1,7 +1,6 @@
 package gosql
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 )
@@ -13,14 +12,6 @@ type model struct {
 	fields            []string
 	fieldCount        int
 	primaryFieldIndex int
-}
-
-type modelMap map[string]*model
-
-var models modelMap
-
-func init() {
-	models = make(modelMap)
 }
 
 func (m *model) getInsertQuery(v reflect.Value) string {
@@ -83,16 +74,6 @@ func (m *model) getUpdateQuery() string {
 	return query.String()
 }
 
-func (m *model) mustBeValid() error {
-	if models[m.name] != nil {
-		return fmt.Errorf("model %s found more than once", m.name)
-	}
-	if m.primaryFieldIndex < 0 {
-		return fmt.Errorf("model %s must have one and only one field tagged `gosql:\"primary\"`", m.name)
-	}
-	return nil
-}
-
 func (m *model) getFieldIndexByName(name string) int {
 	for i, f := range m.fields {
 		if name == f || strings.HasSuffix(name, "."+f) {
@@ -136,20 +117,4 @@ func (m *model) getArgsPrimaryLast(v reflect.Value) []interface{} {
 	}
 	args[m.fieldCount-1] = primArg
 	return args
-}
-
-func getModelOf(obj interface{}) (*model, error) {
-	t := reflect.TypeOf(obj)
-	if t.Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("obj must be a pointer to your model struct")
-	}
-	t = t.Elem()
-	if t.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("obj must be a pointer to your model struct")
-	}
-	m := models[t.Name()]
-	if m == nil {
-		return nil, fmt.Errorf("you must first register %s", t.Name())
-	}
-	return m, nil
 }
