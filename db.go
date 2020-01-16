@@ -53,7 +53,7 @@ func (db *DB) Update(obj interface{}) (sql.Result, error) {
 		return nil, err
 	}
 	v := reflect.ValueOf(obj).Elem()
-	return db.db.Exec(m.getUpdateQuery(v), m.getArgsPrimaryLast(v)...)
+	return db.db.Exec(m.getUpdateQuery(), m.getArgsPrimaryLast(v)...)
 }
 
 // Delete .
@@ -63,7 +63,7 @@ func (db *DB) Delete(obj interface{}) (sql.Result, error) {
 		return nil, err
 	}
 	v := reflect.ValueOf(obj).Elem()
-	return db.db.Exec(m.getDeleteQuery(v), v.Field(m.primaryFieldIndex).Interface())
+	return db.db.Exec(m.getDeleteQuery(), v.Field(m.primaryFieldIndex).Interface())
 }
 
 // Exec .

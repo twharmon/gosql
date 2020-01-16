@@ -52,7 +52,7 @@ func (m *model) getInsertQuery(v reflect.Value) string {
 	return query.String()
 }
 
-func (m *model) getDeleteQuery(v reflect.Value) string {
+func (m *model) getDeleteQuery() string {
 	var query strings.Builder
 	query.WriteString("delete from ")
 	query.WriteString(m.table)
@@ -62,7 +62,7 @@ func (m *model) getDeleteQuery(v reflect.Value) string {
 	return query.String()
 }
 
-func (m *model) getUpdateQuery(v reflect.Value) string {
+func (m *model) getUpdateQuery() string {
 	var query strings.Builder
 	query.WriteString("update ")
 	query.WriteString(m.table)
