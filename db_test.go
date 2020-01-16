@@ -1,208 +1,200 @@
-package gosql
+package gosql_test
 
 import (
+	"database/sql"
+	"fmt"
+	"os"
 	"testing"
-	"time"
 
-	sqlmock "github.com/DATA-DOG/go-sqlmock"
+	"github.com/DATA-DOG/go-sqlmock"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/twharmon/gosql"
 )
 
-func TestInsert(t *testing.T) {
-	user := &User{
-		Role:   "admin",
-		Email:  "test@example.com",
-		Active: true,
-	}
+type User struct {
+	ID   int `gosql:"primary"`
+	Name string
+}
 
-	mock.ExpectExec(`^insert into user \(role, email, active\) values \(\?, \?, \?\)$`).WithArgs(user.Role, user.Email, user.Active).WillReturnResult(sqlmock.NewResult(1, 1))
-
-	if _, err := DBConn.Insert(user); err != nil {
-		t.Errorf("error was not expected while inserting: %s", err)
-		return
+func init() {
+	if err := gosql.Register(User{}); err != nil {
+		panic(err)
 	}
+}
 
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
+func TestDelete(t *testing.T) {
+	type DeleteModel struct {
+		ID int `gosql:"primary"`
 	}
+	check(t, gosql.Register(DeleteModel{}))
+	deleteModel := DeleteModel{5}
+	db, mock, err := getMockDB()
+	check(t, err)
+	mock.ExpectExec(`^delete from delete_model where id = \?$`).WithArgs(deleteModel.ID).WillReturnResult(sqlmock.NewResult(0, 1))
+	_, err = db.Delete(&deleteModel)
+	check(t, err)
+	check(t, mock.ExpectationsWereMet())
 }
 
 func TestUpdate(t *testing.T) {
-	user := &User{
-		ID:     5,
-		Role:   "admin",
-		Email:  "test@example.com",
-		Active: true,
+	type UpdateModel struct {
+		ID   int `gosql:"primary"`
+		Name string
 	}
+	check(t, gosql.Register(UpdateModel{}))
+	updateModel := UpdateModel{5, "foo"}
+	db, mock, err := getMockDB()
+	check(t, err)
+	mock.ExpectExec(`^update update_model set name = \? where id = \?$`).WithArgs(updateModel.Name, updateModel.ID).WillReturnResult(sqlmock.NewResult(0, 1))
+	_, err = db.Update(&updateModel)
+	check(t, err)
+	check(t, mock.ExpectationsWereMet())
+}
 
-	mock.ExpectExec(`^update user set role = \?, email = \?, active = \? where id = \?$`).WithArgs(user.Role, user.Email, user.Active, user.ID).WillReturnResult(sqlmock.NewResult(1, 1))
-
-	if _, err := DBConn.Update(user); err != nil {
-		t.Errorf("error was not expected while inserting: %s", err)
-		return
+func TestInsert(t *testing.T) {
+	type InsertModel struct {
+		ID   int `gosql:"primary"`
+		Name string
 	}
+	check(t, gosql.Register(InsertModel{}))
+	insertModel := InsertModel{Name: "foo"}
+	db, mock, err := getMockDB()
+	check(t, err)
+	mock.ExpectExec(`^insert into insert_model \(name\) values \(\?\)$`).WithArgs(insertModel.Name).WillReturnResult(sqlmock.NewResult(0, 1))
+	_, err = db.Insert(&insertModel)
+	check(t, err)
+	check(t, mock.ExpectationsWereMet())
+}
 
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
+func TestInsertWithPrimary(t *testing.T) {
+	type InsertWithPrimaryModel struct {
+		ID   int `gosql:"primary"`
+		Name string
+	}
+	check(t, gosql.Register(InsertWithPrimaryModel{}))
+	insertModelWithPrimary := InsertWithPrimaryModel{5, "foo"}
+	db, mock, err := getMockDB()
+	check(t, err)
+	mock.ExpectExec(`^insert into insert_with_primary_model \(id, name\) values \(\?, \?\)$`).WithArgs(insertModelWithPrimary.ID, insertModelWithPrimary.Name).WillReturnResult(sqlmock.NewResult(0, 1))
+	_, err = db.Insert(&insertModelWithPrimary)
+	check(t, err)
+	check(t, mock.ExpectationsWereMet())
+}
+
+func ExampleDB_Insert() {
+	os.Remove("/tmp/foo.db")
+	sqliteDB, _ := sql.Open("sqlite3", "/tmp/foo.db")
+	sqliteDB.Exec("create table user (id integer not null primary key, name text); delete from user")
+	db := gosql.Conn(sqliteDB)
+	type User struct {
+		ID   int `gosql:"primary"`
+		Name string
+	}
+	gosql.Register(User{})
+	db.Insert(&User{Name: "Gopher"})
+	var user User
+	db.Select("*").To(&user)
+	fmt.Println(user.Name)
+	// Output: Gopher
+}
+
+func ExampleDB_Update() {
+	os.Remove("/tmp/foo.db")
+	sqliteDB, _ := sql.Open("sqlite3", "/tmp/foo.db")
+	sqliteDB.Exec("create table user (id integer not null primary key, name text); delete from user")
+	db := gosql.Conn(sqliteDB)
+	type User struct {
+		ID   int `gosql:"primary"`
+		Name string
+	}
+	gosql.Register(User{})
+	user := User{ID: 5, Name: "Gopher"}
+	db.Insert(&user)
+	user.Name = "Gofer"
+	db.Update(&user)
+	var foo User
+	db.Select("*").To(&foo)
+	fmt.Println(foo.Name)
+	// Output: Gofer
+}
+
+func ExampleDB_Delete() {
+	os.Remove("/tmp/foo.db")
+	sqliteDB, _ := sql.Open("sqlite3", "/tmp/foo.db")
+	sqliteDB.Exec("create table user (id integer not null primary key, name text); delete from user")
+	db := gosql.Conn(sqliteDB)
+	type User struct {
+		ID   int `gosql:"primary"`
+		Name string
+	}
+	gosql.Register(User{})
+	user := User{ID: 5, Name: "Gopher"}
+	db.Insert(&user)
+	db.Delete(&user)
+	var foo User
+	err := db.Select("*").To(&foo)
+	fmt.Println(err)
+	// Output: no result found
+}
+
+func BenchmarkInsert(b *testing.B) {
+	db := getSQLiteDB(b, "create table user (id integer not null primary key, name text); delete from user")
+	user := User{Name: "Gopher"}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := db.Insert(&user)
+		check(b, err)
 	}
 }
 
-func TestInsertAllTypes(t *testing.T) {
-	all := &AllTypes{
-		Uint64:      5,
-		Int64:       5,
-		Uint:        5,
-		Int:         5,
-		String:      "gopher",
-		Float32:     5.5,
-		Float64:     5.5,
-		Blob:        []byte("gopher"),
-		Time:        time.Now(),
-		Bool:        true,
-		NullBool:    NullBool{Valid: true, Bool: true},
-		NullInt:     NullInt{Valid: true, Int: 5},
-		NullInt64:   NullInt64{Valid: true, Int64: 5},
-		NullInt32:   NullInt32{Valid: true, Int32: 5},
-		NullUint:    NullUint{Valid: true, Uint: 5},
-		NullUint64:  NullUint64{Valid: true, Uint64: 5},
-		NullUint32:  NullUint32{Valid: true, Uint32: 5},
-		NullString:  NullString{Valid: true, String: "gopher"},
-		NullTime:    NullTime{Valid: true, Time: time.Now()},
-		NullFloat32: NullFloat32{Valid: true, Float32: 5.5},
-		NullFloat64: NullFloat64{Valid: true, Float64: 5.5},
-	}
-	mock.ExpectExec(`^insert into all_types \(uint64, uint, int, int64, float32, float64, string, blob, bool, time, null_string, null_uint64, null_uint32, null_int64, null_int32, null_int, null_uint, null_float64, null_float32, null_time, null_bool\) values \(\?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?\)$`).
-		WithArgs(all.Uint64, all.Uint, all.Int, all.Int64, all.Float32, all.Float64, all.String, all.Blob, all.Bool, all.Time, all.NullString, all.NullUint64, all.NullUint32, all.NullInt64, all.NullInt32, all.NullInt, all.NullUint, all.NullFloat64, all.NullFloat32, all.NullTime, all.NullBool).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-
-	if _, err := DBConn.Insert(all); err != nil {
-		t.Errorf("error was not expected while inserting: %s", err)
-		return
-	}
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
+func BenchmarkUpdate(b *testing.B) {
+	db := getSQLiteDB(b, "create table user (id integer not null primary key, name text); delete from user")
+	user := User{Name: "Gopher"}
+	_, err := db.Insert(&user)
+	check(b, err)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := db.Update(&user)
+		check(b, err)
 	}
 }
 
-func TestInsertAllTypesNull(t *testing.T) {
-	all := &AllTypes{}
-	mock.ExpectExec(`^insert into all_types \(uint64, uint, int, int64, float32, float64, string, blob, bool, time, null_string, null_uint64, null_uint32, null_int64, null_int32, null_int, null_uint, null_float64, null_float32, null_time, null_bool\) values \(\?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?, \?\)$`).
-		WithArgs(all.Uint64, all.Uint, all.Int, all.Int64, all.Float32, all.Float64, all.String, all.Blob, all.Bool, all.Time, all.NullString, all.NullUint64, all.NullUint32, all.NullInt64, all.NullInt32, all.NullInt, all.NullUint, all.NullFloat64, all.NullFloat32, all.NullTime, all.NullBool).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-
-	if _, err := DBConn.Insert(all); err != nil {
-		t.Errorf("error was not expected while inserting: %s", err)
-		return
-	}
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
+func BenchmarkSelect(b *testing.B) {
+	db := getSQLiteDB(b, "create table user (id integer not null primary key, name text); delete from user")
+	user := User{ID: 5, Name: "Gopher"}
+	_, err := db.Insert(&user)
+	check(b, err)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		var user User
+		check(b, db.Select("*").To(&user))
 	}
 }
 
-func TestManualUpdate(t *testing.T) {
-	user := &User{
-		ID:     5,
-		Role:   "admin",
-		Email:  "test@example.com",
-		Active: true,
+func BenchmarkSelectMany(b *testing.B) {
+	db := getSQLiteDB(b, "create table user (id integer not null primary key, name text); delete from user")
+	user := User{Name: "Gopher"}
+	for i := 0; i < 100; i++ {
+		_, err := db.Insert(&user)
+		check(b, err)
 	}
-
-	mock.ExpectExec(`^update user set role = \?, email = \?, active = \? where id = \?$`).WithArgs(user.Role, user.Email, user.Active, user.ID).WillReturnResult(sqlmock.NewResult(1, 1))
-
-	q := DBConn.ManualUpdate("user")
-	q.Set("role = ?", user.Role)
-	q.Set("email = ?", user.Email)
-	q.Set("active = ?", user.Active)
-	q.Where("id = ?", user.ID)
-
-	if _, err := q.Exec(); err != nil {
-		t.Errorf("error was not expected while inserting: %s", err)
-		return
-	}
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		var users []User
+		check(b, db.Select("*").Limit(100).To(&users))
 	}
 }
 
-func TestManualDelete(t *testing.T) {
-	mock.ExpectExec(`^delete from user where id = \?$`).WithArgs(1).WillReturnResult(sqlmock.NewResult(0, 1))
-
-	q := DBConn.ManualDelete("user")
-	q.Where("id = ?", 1)
-
-	if _, err := q.Exec(); err != nil {
-		t.Errorf("error was not expected while inserting: %s", err)
-		return
+func BenchmarkSelectManyPtrs(b *testing.B) {
+	db := getSQLiteDB(b, "create table user (id integer not null primary key, name text); delete from user")
+	user := User{Name: "Gopher"}
+	for i := 0; i < 100; i++ {
+		_, err := db.Insert(&user)
+		check(b, err)
 	}
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
-	}
-}
-
-func TestCount(t *testing.T) {
-	rows := sqlmock.NewRows([]string{"count(*)"})
-	rows.AddRow(10)
-	mock.ExpectQuery(`^select count\(\*\) from user where id > \?$`).WithArgs(10).WillReturnRows(rows)
-
-	q := DBConn.Count("user", "*")
-	q.Where("id > ?", 10)
-
-	if _, err := q.Exec(); err != nil {
-		t.Errorf("error was not expected while inserting: %s", err)
-		return
-	}
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
-	}
-}
-
-func TestInsertPrimaryLast(t *testing.T) {
-	user := &UserPrimaryLast{
-		Role:   "admin",
-		Email:  "test@example.com",
-		Active: true,
-	}
-
-	mock.ExpectExec(`^insert into user_primary_last \(role, email, active\) values \(\?, \?, \?\)$`).WithArgs(user.Role, user.Email, user.Active).WillReturnResult(sqlmock.NewResult(1, 1))
-
-	if _, err := DBConn.Insert(user); err != nil {
-		t.Errorf("error was not expected while inserting: %s", err)
-		return
-	}
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
-	}
-}
-
-func TestInsertErrors(t *testing.T) {
-	_, err := DBConn.Insert(User{})
-	assertErr(t, "should return error if struct and not pointer to struct", err)
-
-	_, err2 := DBConn.Insert(User{})
-	assertErr(t, "should return error if pointer to non struct", err2)
-
-	type Post struct {
-		ID    int64
-		Title string
-	}
-	_, err3 := DBConn.Insert(User{})
-	assertErr(t, "should return error if struct not registered", err3)
-}
-
-func TestExec(t *testing.T) {
-	mock.ExpectExec(`^update user set email = \? where id = \?$`).WithArgs(1).WillReturnResult(sqlmock.NewResult(1, 1))
-
-	if _, err := DBConn.Exec("update user set email = ? where id = ?", 1); err != nil {
-		t.Errorf("error was not expected while executing: %s", err)
-		return
-	}
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		var users []*User
+		check(b, db.Select("*").Limit(100).To(&users))
 	}
 }
