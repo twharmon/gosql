@@ -2,43 +2,89 @@ package gosql
 
 import (
 	"database/sql"
+	"fmt"
 	"reflect"
+	"regexp"
+	"strings"
 )
 
 // DB is a wrapper around sql.DB.
 type DB struct {
-	db *sql.DB
+	db     *sql.DB
+	models map[string]*model
 }
 
-// SetMaxOpenConns sets the maximum number of open connections to the database.
-//
-// If MaxIdleConns is greater than 0 and the new MaxOpenConns is less than
-// MaxIdleConns, then MaxIdleConns will be reduced to match the new
-// MaxOpenConns limit.
-//
-// If n <= 0, then there is no limit on the number of open connections.
-// The default is 0 (unlimited).
-func (db *DB) SetMaxOpenConns(max int) {
-	db.db.SetMaxOpenConns(max)
+// Register .
+func (db *DB) Register(structs ...interface{}) error {
+	for _, s := range structs {
+		if err := db.register(s); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-// SetMaxIdleConns sets the maximum number of connections in the idle
-// connection pool.
-//
-// If MaxOpenConns is greater than 0 but less than the new MaxIdleConns,
-// then the new MaxIdleConns will be reduced to match the MaxOpenConns limit.
-//
-// If n <= 0, no idle connections are retained.
-//
-// The default max idle connections is currently 2. This may change in
-// a future release.
-func (db *DB) SetMaxIdleConns(max int) {
-	db.db.SetMaxIdleConns(max)
+func (db *DB) register(s interface{}) error {
+	typ := reflect.TypeOf(s)
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+	if typ.Kind() != reflect.Struct {
+		return fmt.Errorf("you can only register structs, %s found", reflect.TypeOf(s).Kind())
+	}
+	m := new(model)
+	m.typ = typ
+	m.name = m.typ.Name()
+	m.table = toSnakeCase(m.name)
+	m.primaryFieldIndex = -1
+	for i := 0; i < m.typ.NumField(); i++ {
+		f := m.typ.Field(i)
+		tag, ok := f.Tag.Lookup("gosql")
+		if ok && tag == "-" {
+			continue
+		}
+		if ok && tag == "primary" {
+			m.primaryFieldIndex = i
+		}
+		m.fields = append(m.fields, toSnakeCase(f.Name))
+	}
+	if err := db.mustBeValid(m); err != nil {
+		return err
+	}
+	m.fieldCount = len(m.fields)
+	db.models[m.name] = m
+	return nil
+}
+
+func (db *DB) getModelOf(obj interface{}) (*model, error) {
+	t := reflect.TypeOf(obj)
+	if t.Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("obj must be a pointer to your model struct")
+	}
+	t = t.Elem()
+	if t.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("obj must be a pointer to your model struct")
+	}
+	m := db.models[t.Name()]
+	if m == nil {
+		return nil, fmt.Errorf("you must first register %s", t.Name())
+	}
+	return m, nil
+}
+
+func (db *DB) mustBeValid(m *model) error {
+	if db.models[m.name] != nil {
+		return fmt.Errorf("model %s found more than once", m.name)
+	}
+	if m.primaryFieldIndex < 0 {
+		return fmt.Errorf("model %s must have one and only one field tagged `gosql:\"primary\"`", m.name)
+	}
+	return nil
 }
 
 // Insert .
 func (db *DB) Insert(obj interface{}) (sql.Result, error) {
-	m, err := getModelOf(obj)
+	m, err := db.getModelOf(obj)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +94,7 @@ func (db *DB) Insert(obj interface{}) (sql.Result, error) {
 
 // Update .
 func (db *DB) Update(obj interface{}) (sql.Result, error) {
-	m, err := getModelOf(obj)
+	m, err := db.getModelOf(obj)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +104,7 @@ func (db *DB) Update(obj interface{}) (sql.Result, error) {
 
 // Delete .
 func (db *DB) Delete(obj interface{}) (sql.Result, error) {
-	m, err := getModelOf(obj)
+	m, err := db.getModelOf(obj)
 	if err != nil {
 		return nil, err
 	}
@@ -112,4 +158,13 @@ func (db *DB) ManualDelete(table string) *DeleteQuery {
 	dq.db = db
 	dq.table = table
 	return dq
+}
+
+var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
+var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
+
+func toSnakeCase(str string) string {
+	snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
+	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
+	return strings.ToLower(snake)
 }

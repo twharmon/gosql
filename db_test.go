@@ -11,71 +11,60 @@ import (
 	"github.com/twharmon/gosql"
 )
 
-type User struct {
-	ID   int `gosql:"primary"`
-	Name string
-}
-
-func init() {
-	if err := gosql.Register(User{}); err != nil {
-		panic(err)
-	}
-}
-
 func TestDelete(t *testing.T) {
-	type DeleteModel struct {
-		ID int `gosql:"primary"`
-	}
-	check(t, gosql.Register(DeleteModel{}))
-	deleteModel := DeleteModel{5}
 	db, mock, err := getMockDB()
 	check(t, err)
-	mock.ExpectExec(`^delete from delete_model where id = \?$`).WithArgs(deleteModel.ID).WillReturnResult(sqlmock.NewResult(0, 1))
+	type T struct {
+		ID int `gosql:"primary"`
+	}
+	check(t, db.Register(T{}))
+	deleteModel := T{5}
+	mock.ExpectExec(`^delete from t where id = \?$`).WithArgs(deleteModel.ID).WillReturnResult(sqlmock.NewResult(0, 1))
 	_, err = db.Delete(&deleteModel)
 	check(t, err)
 	check(t, mock.ExpectationsWereMet())
 }
 
 func TestUpdate(t *testing.T) {
-	type UpdateModel struct {
+	db, mock, err := getMockDB()
+	check(t, err)
+	type T struct {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, gosql.Register(UpdateModel{}))
-	updateModel := UpdateModel{5, "foo"}
-	db, mock, err := getMockDB()
-	check(t, err)
-	mock.ExpectExec(`^update update_model set name = \? where id = \?$`).WithArgs(updateModel.Name, updateModel.ID).WillReturnResult(sqlmock.NewResult(0, 1))
+	check(t, db.Register(T{}))
+	updateModel := T{5, "foo"}
+	mock.ExpectExec(`^update t set name = \? where id = \?$`).WithArgs(updateModel.Name, updateModel.ID).WillReturnResult(sqlmock.NewResult(0, 1))
 	_, err = db.Update(&updateModel)
 	check(t, err)
 	check(t, mock.ExpectationsWereMet())
 }
 
 func TestInsert(t *testing.T) {
-	type InsertModel struct {
+	db, mock, err := getMockDB()
+	check(t, err)
+	type T struct {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, gosql.Register(InsertModel{}))
-	insertModel := InsertModel{Name: "foo"}
-	db, mock, err := getMockDB()
-	check(t, err)
-	mock.ExpectExec(`^insert into insert_model \(name\) values \(\?\)$`).WithArgs(insertModel.Name).WillReturnResult(sqlmock.NewResult(0, 1))
+	check(t, db.Register(T{}))
+	insertModel := T{Name: "foo"}
+	mock.ExpectExec(`^insert into t \(name\) values \(\?\)$`).WithArgs(insertModel.Name).WillReturnResult(sqlmock.NewResult(0, 1))
 	_, err = db.Insert(&insertModel)
 	check(t, err)
 	check(t, mock.ExpectationsWereMet())
 }
 
 func TestInsertWithPrimary(t *testing.T) {
-	type InsertWithPrimaryModel struct {
+	db, mock, err := getMockDB()
+	check(t, err)
+	type T struct {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, gosql.Register(InsertWithPrimaryModel{}))
-	insertModelWithPrimary := InsertWithPrimaryModel{5, "foo"}
-	db, mock, err := getMockDB()
-	check(t, err)
-	mock.ExpectExec(`^insert into insert_with_primary_model \(id, name\) values \(\?, \?\)$`).WithArgs(insertModelWithPrimary.ID, insertModelWithPrimary.Name).WillReturnResult(sqlmock.NewResult(0, 1))
+	check(t, db.Register(T{}))
+	insertModelWithPrimary := T{5, "foo"}
+	mock.ExpectExec(`^insert into t \(id, name\) values \(\?, \?\)$`).WithArgs(insertModelWithPrimary.ID, insertModelWithPrimary.Name).WillReturnResult(sqlmock.NewResult(0, 1))
 	_, err = db.Insert(&insertModelWithPrimary)
 	check(t, err)
 	check(t, mock.ExpectationsWereMet())
@@ -85,12 +74,12 @@ func ExampleDB_Insert() {
 	os.Remove("/tmp/foo.db")
 	sqliteDB, _ := sql.Open("sqlite3", "/tmp/foo.db")
 	sqliteDB.Exec("create table user (id integer not null primary key, name text); delete from user")
-	db := gosql.Conn(sqliteDB)
+	db := gosql.New(sqliteDB)
 	type User struct {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	gosql.Register(User{})
+	db.Register(User{})
 	db.Insert(&User{Name: "Gopher"})
 	var user User
 	db.Select("*").To(&user)
@@ -102,12 +91,12 @@ func ExampleDB_Update() {
 	os.Remove("/tmp/foo.db")
 	sqliteDB, _ := sql.Open("sqlite3", "/tmp/foo.db")
 	sqliteDB.Exec("create table user (id integer not null primary key, name text); delete from user")
-	db := gosql.Conn(sqliteDB)
+	db := gosql.New(sqliteDB)
 	type User struct {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	gosql.Register(User{})
+	db.Register(User{})
 	user := User{ID: 5, Name: "Gopher"}
 	db.Insert(&user)
 	user.Name = "Gofer"
@@ -122,12 +111,12 @@ func ExampleDB_Delete() {
 	os.Remove("/tmp/foo.db")
 	sqliteDB, _ := sql.Open("sqlite3", "/tmp/foo.db")
 	sqliteDB.Exec("create table user (id integer not null primary key, name text); delete from user")
-	db := gosql.Conn(sqliteDB)
+	db := gosql.New(sqliteDB)
 	type User struct {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	gosql.Register(User{})
+	db.Register(User{})
 	user := User{ID: 5, Name: "Gopher"}
 	db.Insert(&user)
 	db.Delete(&user)
@@ -139,6 +128,11 @@ func ExampleDB_Delete() {
 
 func BenchmarkInsert(b *testing.B) {
 	db := getSQLiteDB(b, "create table user (id integer not null primary key, name text); delete from user")
+	type User struct {
+		ID   int `gosql:"primary"`
+		Name string
+	}
+	db.Register(User{})
 	user := User{Name: "Gopher"}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -149,6 +143,11 @@ func BenchmarkInsert(b *testing.B) {
 
 func BenchmarkUpdate(b *testing.B) {
 	db := getSQLiteDB(b, "create table user (id integer not null primary key, name text); delete from user")
+	type User struct {
+		ID   int `gosql:"primary"`
+		Name string
+	}
+	db.Register(User{})
 	user := User{Name: "Gopher"}
 	_, err := db.Insert(&user)
 	check(b, err)
@@ -161,6 +160,11 @@ func BenchmarkUpdate(b *testing.B) {
 
 func BenchmarkSelect(b *testing.B) {
 	db := getSQLiteDB(b, "create table user (id integer not null primary key, name text); delete from user")
+	type User struct {
+		ID   int `gosql:"primary"`
+		Name string
+	}
+	db.Register(User{})
 	user := User{ID: 5, Name: "Gopher"}
 	_, err := db.Insert(&user)
 	check(b, err)
@@ -173,6 +177,11 @@ func BenchmarkSelect(b *testing.B) {
 
 func BenchmarkSelectMany(b *testing.B) {
 	db := getSQLiteDB(b, "create table user (id integer not null primary key, name text); delete from user")
+	type User struct {
+		ID   int `gosql:"primary"`
+		Name string
+	}
+	db.Register(User{})
 	user := User{Name: "Gopher"}
 	for i := 0; i < 100; i++ {
 		_, err := db.Insert(&user)
@@ -187,6 +196,11 @@ func BenchmarkSelectMany(b *testing.B) {
 
 func BenchmarkSelectManyPtrs(b *testing.B) {
 	db := getSQLiteDB(b, "create table user (id integer not null primary key, name text); delete from user")
+	type User struct {
+		ID   int `gosql:"primary"`
+		Name string
+	}
+	db.Register(User{})
 	user := User{Name: "Gopher"}
 	for i := 0; i < 100; i++ {
 		_, err := db.Insert(&user)

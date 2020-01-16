@@ -35,7 +35,7 @@ func getMockDB() (*gosql.DB, sqlmock.Sqlmock, error) {
 	if err != nil {
 		panic(err)
 	}
-	return gosql.Conn(db), mock, err
+	return gosql.New(db), mock, err
 }
 
 func getSQLiteDB(f fataler, q string) *gosql.DB {
@@ -43,5 +43,5 @@ func getSQLiteDB(f fataler, q string) *gosql.DB {
 	sqliteDB, err := sql.Open("sqlite3", "/tmp/foo.db")
 	check(f, err)
 	sqliteDB.Exec(q)
-	return gosql.Conn(sqliteDB)
+	return gosql.New(sqliteDB)
 }

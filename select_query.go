@@ -84,7 +84,7 @@ func (sq *SelectQuery) To(out interface{}) error {
 	t = t.Elem()
 	switch t.Kind() {
 	case reflect.Struct:
-		sq.model = models[t.Name()]
+		sq.model = sq.db.models[t.Name()]
 		if sq.model == nil {
 			return fmt.Errorf("you must first register %s", t.Name())
 		}
@@ -100,13 +100,13 @@ func (sq *SelectQuery) To(out interface{}) error {
 			if el.Kind() != reflect.Struct {
 				break
 			}
-			sq.model = models[el.Name()]
+			sq.model = sq.db.models[el.Name()]
 			if sq.model == nil {
 				return fmt.Errorf("you must first register %s", el.Name())
 			}
 			return sq.toMany(t, out)
 		case reflect.Struct:
-			sq.model = models[el.Name()]
+			sq.model = sq.db.models[el.Name()]
 			if sq.model == nil {
 				return fmt.Errorf("you must first register %s", el.Name())
 			}
