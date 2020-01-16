@@ -90,21 +90,23 @@ func ExampleDB_Insert() {
 func ExampleDB_Update() {
 	os.Remove("/tmp/foo.db")
 	sqliteDB, _ := sql.Open("sqlite3", "/tmp/foo.db")
-	sqliteDB.Exec("create table user (id integer not null primary key, name text); delete from user")
+	sqliteDB.Exec("create table user (id integer not null primary key, name text, email text); delete from user")
 	db := gosql.New(sqliteDB)
 	type User struct {
-		ID   int `gosql:"primary"`
-		Name string
+		ID    int `gosql:"primary"`
+		Name  string
+		Email string
 	}
 	db.Register(User{})
-	user := User{ID: 5, Name: "Gopher"}
+	user := User{ID: 5, Name: "Gopher", Email: "gopher@example.com"}
 	db.Insert(&user)
 	user.Name = "Gofer"
+	user.Email = "gofer@example.com"
 	db.Update(&user)
 	var foo User
 	db.Select("*").To(&foo)
-	fmt.Println(foo.Name)
-	// Output: Gofer
+	fmt.Println(foo.Name, foo.Email)
+	// Output: Gofer gofer@example.com
 }
 
 func ExampleDB_Delete() {
