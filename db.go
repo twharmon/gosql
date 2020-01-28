@@ -14,7 +14,7 @@ type DB struct {
 	models map[string]*model
 }
 
-// Register .
+// Register registers structs for database queries.
 func (db *DB) Register(structs ...interface{}) error {
 	for _, s := range structs {
 		if err := db.register(s); err != nil {
@@ -80,6 +80,11 @@ func (db *DB) mustBeValid(m *model) error {
 		return fmt.Errorf("model %s must have one and only one field tagged `gosql:\"primary\"`", m.name)
 	}
 	return nil
+}
+
+// Begin starts a transaction.
+func (db *DB) Begin() (*sql.Tx, error) {
+	return db.db.Begin()
 }
 
 // Insert .
