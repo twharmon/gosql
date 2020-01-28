@@ -40,6 +40,15 @@ func TestUpdate(t *testing.T) {
 	check(t, mock.ExpectationsWereMet())
 }
 
+func TestBegin(t *testing.T) {
+	db, mock, err := getMockDB()
+	check(t, err)
+	_ = mock.ExpectBegin()
+	_, err = db.Begin()
+	check(t, err)
+	check(t, mock.ExpectationsWereMet())
+}
+
 func TestInsert(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
