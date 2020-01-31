@@ -91,7 +91,7 @@ func ExampleDB_Insert() {
 	db.Register(User{})
 	db.Insert(&User{Name: "Gopher"})
 	var user User
-	db.Select("*").To(&user)
+	db.Select("*").Get(&user)
 	fmt.Println(user.Name)
 	// Output: Gopher
 }
@@ -113,7 +113,7 @@ func ExampleDB_Update() {
 	user.Email = "gofer@example.com"
 	db.Update(&user)
 	var foo User
-	db.Select("*").To(&foo)
+	db.Select("*").Get(&foo)
 	fmt.Println(foo.Name, foo.Email)
 	// Output: Gofer gofer@example.com
 }
@@ -132,7 +132,7 @@ func ExampleDB_Delete() {
 	db.Insert(&user)
 	db.Delete(&user)
 	var foo User
-	err := db.Select("*").To(&foo)
+	err := db.Select("*").Get(&foo)
 	fmt.Println(err)
 	// Output: no result found
 }
@@ -182,7 +182,7 @@ func BenchmarkSelect(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		var user User
-		check(b, db.Select("*").To(&user))
+		check(b, db.Select("*").Get(&user))
 	}
 }
 
@@ -201,7 +201,7 @@ func BenchmarkSelectMany(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		var users []User
-		check(b, db.Select("*").Limit(100).To(&users))
+		check(b, db.Select("*").Limit(100).Get(&users))
 	}
 }
 
@@ -220,6 +220,6 @@ func BenchmarkSelectManyPtrs(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		var users []*User
-		check(b, db.Select("*").Limit(100).To(&users))
+		check(b, db.Select("*").Limit(100).Get(&users))
 	}
 }

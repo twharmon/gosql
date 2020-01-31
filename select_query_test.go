@@ -22,7 +22,7 @@ func TestSelectQueryOne(t *testing.T) {
 	rows.AddRow(control.ID, control.Name)
 	mock.ExpectQuery(`^select \* from t where id = \? limit 1$`).WithArgs(control.ID).WillReturnRows(rows)
 	var test T
-	check(t, db.Select("*").Where("id = ?", control.ID).To(&test))
+	check(t, db.Select("*").Where("id = ?", control.ID).Get(&test))
 	check(t, mock.ExpectationsWereMet())
 	equals(t, control, test)
 }
@@ -51,7 +51,7 @@ func TestSelectQueryMany(t *testing.T) {
 	}
 	mock.ExpectQuery(`^select \* from t limit 10$`).WillReturnRows(rows)
 	var test []*T
-	check(t, db.Select("*").Limit(10).To(&test))
+	check(t, db.Select("*").Limit(10).Get(&test))
 	check(t, mock.ExpectationsWereMet())
 	for i := 0; i < len(control); i++ {
 		equals(t, control[i], test[i])
@@ -82,7 +82,7 @@ func TestSelectQueryManyValues(t *testing.T) {
 	}
 	mock.ExpectQuery(`^select \* from t limit 10$`).WillReturnRows(rows)
 	var test []T
-	check(t, db.Select("*").Limit(10).To(&test))
+	check(t, db.Select("*").Limit(10).Get(&test))
 	check(t, mock.ExpectationsWereMet())
 	for i := 0; i < len(control); i++ {
 		equals(t, control[i], test[i])
