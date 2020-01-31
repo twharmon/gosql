@@ -73,10 +73,10 @@ func (sq *SelectQuery) Offset(offset int64) *SelectQuery {
 	return sq
 }
 
-// To sets the result of the query to out. To() can only take a pointer
+// Get sets the result of the query to out. Get() can only take a pointer
 // to a struct, a pointer to a slice of structs, or a pointer to a slice
 // of pointers to structs.
-func (sq *SelectQuery) To(out interface{}) error {
+func (sq *SelectQuery) Get(out interface{}) error {
 	t := reflect.TypeOf(out)
 	if t.Kind() != reflect.Ptr {
 		return fmt.Errorf("out must be a pointer")
