@@ -90,9 +90,6 @@ func (sq *SelectQuery) Get(out interface{}) error {
 		}
 		return sq.toOne(out)
 	case reflect.Slice:
-		if sq.limit == 0 {
-			return errors.New("limit must be set and not zero when selecting multiple rows")
-		}
 		el := t.Elem()
 		switch el.Kind() {
 		case reflect.Ptr:
@@ -104,11 +101,17 @@ func (sq *SelectQuery) Get(out interface{}) error {
 			if sq.model == nil {
 				return fmt.Errorf("you must first register %s", el.Name())
 			}
+			if sq.limit == 0 {
+				return errors.New("limit must be set and not zero when selecting multiple rows")
+			}
 			return sq.toMany(t, out)
 		case reflect.Struct:
 			sq.model = sq.db.models[el.Name()]
 			if sq.model == nil {
 				return fmt.Errorf("you must first register %s", el.Name())
+			}
+			if sq.limit == 0 {
+				return errors.New("limit must be set and not zero when selecting multiple rows")
 			}
 			return sq.toManyValues(t, out)
 		}
