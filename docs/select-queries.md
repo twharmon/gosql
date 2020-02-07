@@ -1,3 +1,9 @@
+---
+title: Select Queries
+sidebar: toc
+permalink: /select-queries
+---
+
 # Select Queries
 
 ## Setup
