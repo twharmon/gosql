@@ -2,7 +2,7 @@
 Query builder with some handy utility functions.
 
 ## Documentation
-For full documentation see [godoc](https://godoc.org/github.com/twharmon/gosql).
+For full documentation see the [godoc](https://godoc.org/github.com/twharmon/gosql) or [GitBook](https://twharmon.gitbook.io/gosql/).
 
 ## Benchmarks
 ```
