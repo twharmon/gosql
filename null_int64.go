@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-// NullInt64 .
+// NullInt64 holds an int64 value that might be null in the database.
 type NullInt64 struct {
 	Int64 int64
 	Valid bool
@@ -40,7 +40,7 @@ func (n NullInt64) Value() (driver.Value, error) {
 	return n.Int64, nil
 }
 
-// MarshalJSON .
+// MarshalJSON implements the Marshaler interface.
 func (n NullInt64) MarshalJSON() ([]byte, error) {
 	if n.Valid {
 		return json.Marshal(n.Int64)
@@ -48,7 +48,7 @@ func (n NullInt64) MarshalJSON() ([]byte, error) {
 	return json.Marshal(nil)
 }
 
-// UnmarshalJSON .
+// UnmarshalJSON implements the Unmarshaler interface.
 func (n *NullInt64) UnmarshalJSON(data []byte) error {
 	var i64 *int64
 	if err := json.Unmarshal(data, &i64); err != nil {

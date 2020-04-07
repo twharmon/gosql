@@ -8,7 +8,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// ErrNotFound .
+// ErrNotFound is returned when a query for one result returns no
+// results.
 var ErrNotFound = errors.New("no result found")
 
 // New returns a reference to DB.

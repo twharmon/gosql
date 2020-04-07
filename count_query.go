@@ -4,7 +4,7 @@ import (
 	"strings"
 )
 
-// CountQuery .
+// CountQuery is a query for counting rows in a table.
 type CountQuery struct {
 	db        *DB
 	count     string
@@ -14,7 +14,7 @@ type CountQuery struct {
 	whereArgs []interface{}
 }
 
-// Where .
+// Where specifies which rows will be returned.
 func (cq *CountQuery) Where(condition string, args ...interface{}) *CountQuery {
 	w := &where{
 		conjunction: " and ",
@@ -25,7 +25,7 @@ func (cq *CountQuery) Where(condition string, args ...interface{}) *CountQuery {
 	return cq
 }
 
-// OrWhere .
+// OrWhere specifies which rows will be returned.
 func (cq *CountQuery) OrWhere(condition string, args ...interface{}) *CountQuery {
 	w := &where{
 		conjunction: " or ",
@@ -36,13 +36,13 @@ func (cq *CountQuery) OrWhere(condition string, args ...interface{}) *CountQuery
 	return cq
 }
 
-// Join .
+// Join joins another table to this query.
 func (cq *CountQuery) Join(join string) *CountQuery {
 	cq.joins = append(cq.joins, join)
 	return cq
 }
 
-// Exec .
+// Exec executes the query.
 func (cq *CountQuery) Exec() (int64, error) {
 	var count int64
 	row := cq.db.db.QueryRow(cq.String(), cq.whereArgs...)

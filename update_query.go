@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// UpdateQuery .
+// UpdateQuery holds information for an update query.
 type UpdateQuery struct {
 	db        *DB
 	table     string
@@ -16,7 +16,7 @@ type UpdateQuery struct {
 	setArgs   []interface{}
 }
 
-// Where .
+// Where specifies which rows will be returned.
 func (uq *UpdateQuery) Where(condition string, args ...interface{}) *UpdateQuery {
 	w := &where{
 		conjunction: " and ",
@@ -27,7 +27,7 @@ func (uq *UpdateQuery) Where(condition string, args ...interface{}) *UpdateQuery
 	return uq
 }
 
-// OrWhere .
+// OrWhere specifies which rows will be returned.
 func (uq *UpdateQuery) OrWhere(condition string, args ...interface{}) *UpdateQuery {
 	w := &where{
 		conjunction: " or ",
@@ -38,20 +38,20 @@ func (uq *UpdateQuery) OrWhere(condition string, args ...interface{}) *UpdateQue
 	return uq
 }
 
-// Set .
+// Set specifies how to update a row in a table.
 func (uq *UpdateQuery) Set(set string, args ...interface{}) *UpdateQuery {
 	uq.sets = append(uq.sets, set)
 	uq.setArgs = append(uq.setArgs, args...)
 	return uq
 }
 
-// Join .
+// Join joins another table to this query.
 func (uq *UpdateQuery) Join(join string) *UpdateQuery {
 	uq.joins = append(uq.joins, join)
 	return uq
 }
 
-// Exec .
+// Exec executes the query.
 func (uq *UpdateQuery) Exec() (sql.Result, error) {
 	args := uq.setArgs
 	args = append(args, uq.whereArgs...)

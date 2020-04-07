@@ -6,7 +6,8 @@ import (
 	"time"
 )
 
-// NullTime .
+// NullTime holds an time.Time value that might be null in the
+// database.
 type NullTime struct {
 	Time  time.Time
 	Valid bool
@@ -31,7 +32,7 @@ func (n NullTime) Value() (driver.Value, error) {
 	return n.Time, nil
 }
 
-// MarshalJSON .
+// MarshalJSON implements the Marshaler interface.
 func (n NullTime) MarshalJSON() ([]byte, error) {
 	if n.Valid {
 		return json.Marshal(n.Time)
@@ -39,7 +40,7 @@ func (n NullTime) MarshalJSON() ([]byte, error) {
 	return json.Marshal(nil)
 }
 
-// UnmarshalJSON .
+// UnmarshalJSON implements the Unmarshaler interface.
 func (n *NullTime) UnmarshalJSON(data []byte) error {
 	var t *time.Time
 	if err := json.Unmarshal(data, &t); err != nil {
