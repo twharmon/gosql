@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 )
 
-// NullString .
+// NullString holds an string value that might be null in the
+// database.
 type NullString struct {
 	String string
 	Valid  bool
@@ -34,7 +35,7 @@ func (n NullString) Value() (driver.Value, error) {
 	return n.String, nil
 }
 
-// MarshalJSON .
+// MarshalJSON implements the Marshaler interface.
 func (n NullString) MarshalJSON() ([]byte, error) {
 	if n.Valid {
 		return json.Marshal(n.String)
@@ -42,7 +43,7 @@ func (n NullString) MarshalJSON() ([]byte, error) {
 	return json.Marshal(nil)
 }
 
-// UnmarshalJSON .
+// UnmarshalJSON implements the Unmarshaler interface.
 func (n *NullString) UnmarshalJSON(data []byte) error {
 	var s *string
 	if err := json.Unmarshal(data, &s); err != nil {

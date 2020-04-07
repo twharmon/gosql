@@ -87,7 +87,7 @@ func (db *DB) Begin() (*sql.Tx, error) {
 	return db.db.Begin()
 }
 
-// Insert .
+// Insert insterts a row in the database.
 func (db *DB) Insert(obj interface{}) (sql.Result, error) {
 	m, err := db.getModelOf(obj)
 	if err != nil {
@@ -97,7 +97,7 @@ func (db *DB) Insert(obj interface{}) (sql.Result, error) {
 	return db.db.Exec(m.getInsertQuery(v), m.getArgs(v)...)
 }
 
-// Update .
+// Update updates a row in the database.
 func (db *DB) Update(obj interface{}) (sql.Result, error) {
 	m, err := db.getModelOf(obj)
 	if err != nil {
@@ -107,7 +107,7 @@ func (db *DB) Update(obj interface{}) (sql.Result, error) {
 	return db.db.Exec(m.getUpdateQuery(), m.getArgsPrimaryLast(v)...)
 }
 
-// Delete .
+// Delete deletes a row from the database.
 func (db *DB) Delete(obj interface{}) (sql.Result, error) {
 	m, err := db.getModelOf(obj)
 	if err != nil {
@@ -117,22 +117,22 @@ func (db *DB) Delete(obj interface{}) (sql.Result, error) {
 	return db.db.Exec(m.getDeleteQuery(), v.Field(m.primaryFieldIndex).Interface())
 }
 
-// Exec .
+// Exec is a wrapper around sql.DB.Exec().
 func (db *DB) Exec(query string, args ...interface{}) (sql.Result, error) {
 	return db.db.Exec(query, args...)
 }
 
-// Query .
+// Query is a wrapper around sql.DB.Query().
 func (db *DB) Query(query string, args ...interface{}) (*sql.Rows, error) {
 	return db.db.Query(query, args...)
 }
 
-// QueryRow .
+// QueryRow is a wrapper around sql.DB.QueryRow().
 func (db *DB) QueryRow(query string, args ...interface{}) *sql.Row {
 	return db.db.QueryRow(query, args...)
 }
 
-// Select .
+// Select selects columns of a table.
 func (db *DB) Select(fields ...string) *SelectQuery {
 	sq := new(SelectQuery)
 	sq.db = db
@@ -140,7 +140,7 @@ func (db *DB) Select(fields ...string) *SelectQuery {
 	return sq
 }
 
-// ManualUpdate .
+// ManualUpdate starts a query for manually updating rows in a table.
 func (db *DB) ManualUpdate(table string) *UpdateQuery {
 	uq := new(UpdateQuery)
 	uq.db = db
@@ -148,7 +148,7 @@ func (db *DB) ManualUpdate(table string) *UpdateQuery {
 	return uq
 }
 
-// Count .
+// Count starts a query for counting rows in a table.
 func (db *DB) Count(table string, count string) *CountQuery {
 	cq := new(CountQuery)
 	cq.db = db
@@ -157,7 +157,7 @@ func (db *DB) Count(table string, count string) *CountQuery {
 	return cq
 }
 
-// ManualDelete .
+// ManualDelete starts a query for manually deleting rows in a table.
 func (db *DB) ManualDelete(table string) *DeleteQuery {
 	dq := new(DeleteQuery)
 	dq.db = db

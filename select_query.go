@@ -13,7 +13,7 @@ type where struct {
 	condition   string
 }
 
-// SelectQuery .
+// SelectQuery holds information for a select query.
 type SelectQuery struct {
 	db     *DB
 	model  *model
@@ -27,13 +27,13 @@ type SelectQuery struct {
 	offset int64
 }
 
-// Join .
+// Join joins another table to this query.
 func (sq *SelectQuery) Join(join string) *SelectQuery {
 	sq.joins = append(sq.joins, join)
 	return sq
 }
 
-// Where .
+// Where specifies which rows will be returned.
 func (sq *SelectQuery) Where(condition string, args ...interface{}) *SelectQuery {
 	w := &where{
 		conjunction: " and ",
@@ -44,7 +44,7 @@ func (sq *SelectQuery) Where(condition string, args ...interface{}) *SelectQuery
 	return sq
 }
 
-// OrWhere .
+// OrWhere specifies which rows will be returned.
 func (sq *SelectQuery) OrWhere(condition string, args ...interface{}) *SelectQuery {
 	w := &where{
 		conjunction: " or ",
@@ -55,19 +55,19 @@ func (sq *SelectQuery) OrWhere(condition string, args ...interface{}) *SelectQue
 	return sq
 }
 
-// OrderBy .
+// OrderBy orders the results by the given criteria.
 func (sq *SelectQuery) OrderBy(orderBy string) *SelectQuery {
 	sq.order = orderBy
 	return sq
 }
 
-// Limit .
+// Limit limits the number of results returned by the query.
 func (sq *SelectQuery) Limit(limit int64) *SelectQuery {
 	sq.limit = limit
 	return sq
 }
 
-// Offset .
+// Offset specifies the offset value in the query.
 func (sq *SelectQuery) Offset(offset int64) *SelectQuery {
 	sq.offset = offset
 	return sq

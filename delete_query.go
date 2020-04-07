@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// DeleteQuery .
+// DeleteQuery is a query for deleting rows from a table.
 type DeleteQuery struct {
 	db        *DB
 	table     string
@@ -14,7 +14,7 @@ type DeleteQuery struct {
 	whereArgs []interface{}
 }
 
-// Where .
+// Where specifies which rows will be returned.
 func (dq *DeleteQuery) Where(condition string, args ...interface{}) *DeleteQuery {
 	w := &where{
 		conjunction: " and ",
@@ -25,7 +25,7 @@ func (dq *DeleteQuery) Where(condition string, args ...interface{}) *DeleteQuery
 	return dq
 }
 
-// OrWhere .
+// OrWhere specifies which rows will be returned.
 func (dq *DeleteQuery) OrWhere(condition string, args ...interface{}) *DeleteQuery {
 	w := &where{
 		conjunction: " or ",
@@ -36,13 +36,13 @@ func (dq *DeleteQuery) OrWhere(condition string, args ...interface{}) *DeleteQue
 	return dq
 }
 
-// Join .
+// Join joins another table to this query.
 func (dq *DeleteQuery) Join(join string) *DeleteQuery {
 	dq.joins = append(dq.joins, join)
 	return dq
 }
 
-// Exec .
+// Exec executes the query.
 func (dq *DeleteQuery) Exec() (sql.Result, error) {
 	return dq.db.db.Exec(dq.String(), dq.whereArgs...)
 }
