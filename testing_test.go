@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -21,6 +22,12 @@ func equals(t *testing.T, a interface{}, b interface{}) {
 	}
 	if a != b {
 		t.Fatalf("expected %v to equal %v", a, b)
+	}
+}
+
+func contains(t *testing.T, str string, substr string) {
+	if !strings.Contains(str, substr) {
+		t.Fatalf("expected %s to contain %s", str, substr)
 	}
 }
 
