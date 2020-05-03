@@ -36,11 +36,11 @@ func TestSelectQueryMany(t *testing.T) {
 	}
 	check(t, db.Register(T{}))
 	control := []*T{
-		&T{
+		{
 			ID:   5,
 			Name: "foo",
 		},
-		&T{
+		{
 			ID:   6,
 			Name: "bar",
 		},
@@ -67,11 +67,11 @@ func TestSelectQueryManyValues(t *testing.T) {
 	}
 	check(t, db.Register(T{}))
 	control := []T{
-		T{
+		{
 			ID:   5,
 			Name: "foo",
 		},
-		T{
+		{
 			ID:   6,
 			Name: "bar",
 		},
@@ -140,15 +140,15 @@ func TestSelectQueryOffset(t *testing.T) {
 	}
 	check(t, db.Register(T{}))
 	control := []T{
-		T{
+		{
 			ID:   6,
 			Name: "bar",
 		},
-		T{
+		{
 			ID:   7,
 			Name: "baz",
 		},
-		T{
+		{
 			ID:   5,
 			Name: "foo",
 		},
