@@ -13,6 +13,11 @@ type where struct {
 	condition   string
 }
 
+type having struct {
+	conjunction string
+	condition   string
+}
+
 // SelectQuery holds information for a select query.
 type SelectQuery struct {
 	db         *DB
@@ -21,8 +26,9 @@ type SelectQuery struct {
 	joins      []string
 	wheres     []*where
 	whereArgs  []interface{}
-	havings    []string
+	havings    []*having
 	havingArgs []interface{}
+	groupBy    string
 	order      string
 	many       bool
 	limit      int64
@@ -48,8 +54,12 @@ func (sq *SelectQuery) Where(condition string, args ...interface{}) *SelectQuery
 
 // Having specifies which rows will be returned.
 func (sq *SelectQuery) Having(condition string, args ...interface{}) *SelectQuery {
-	// sq.wheres = append(sq.wheres, w)
-	// sq.args = append(sq.args, args...)
+	h := &having{
+		conjunction: " and ",
+		condition:   condition,
+	}
+	sq.havings = append(sq.havings, h)
+	sq.havingArgs = append(sq.havingArgs, args...)
 	return sq
 }
 
@@ -61,6 +71,23 @@ func (sq *SelectQuery) OrWhere(condition string, args ...interface{}) *SelectQue
 	}
 	sq.wheres = append(sq.wheres, w)
 	sq.whereArgs = append(sq.whereArgs, args...)
+	return sq
+}
+
+// OrHaving specifies which rows will be returned.
+func (sq *SelectQuery) OrHaving(condition string, args ...interface{}) *SelectQuery {
+	h := &having{
+		conjunction: " or ",
+		condition:   condition,
+	}
+	sq.havings = append(sq.havings, h)
+	sq.havingArgs = append(sq.havingArgs, args...)
+	return sq
+}
+
+// GroupBy specifies how to group the results.
+func (sq *SelectQuery) GroupBy(bys ...string) *SelectQuery {
+	sq.groupBy = strings.Join(bys, ", ")
 	return sq
 }
 
@@ -133,7 +160,9 @@ func (sq *SelectQuery) toOne(out interface{}) error {
 	if !e.IsValid() {
 		return errors.New("out must not be a nil pointer")
 	}
-	rows, err := sq.db.db.Query(sq.String(), sq.whereArgs...)
+	args := sq.whereArgs
+	args = append(args, sq.havingArgs...)
+	rows, err := sq.db.db.Query(sq.String(), args...)
 	if err != nil {
 		return err
 	}
@@ -159,7 +188,9 @@ func (sq *SelectQuery) toOne(out interface{}) error {
 
 func (sq *SelectQuery) toMany(sliceType reflect.Type, outs interface{}) error {
 	sq.many = true
-	rows, err := sq.db.db.Query(sq.String(), sq.whereArgs...)
+	args := sq.whereArgs
+	args = append(args, sq.havingArgs...)
+	rows, err := sq.db.db.Query(sq.String(), args...)
 	if err != nil {
 		return err
 	}
@@ -192,7 +223,9 @@ func (sq *SelectQuery) toMany(sliceType reflect.Type, outs interface{}) error {
 
 func (sq *SelectQuery) toManyValues(sliceType reflect.Type, outs interface{}) error {
 	sq.many = true
-	rows, err := sq.db.db.Query(sq.String(), sq.whereArgs...)
+	args := sq.whereArgs
+	args = append(args, sq.havingArgs...)
+	rows, err := sq.db.db.Query(sq.String(), args...)
 	if err != nil {
 		return err
 	}
@@ -246,6 +279,21 @@ func (sq *SelectQuery) String() string {
 		}
 		q.WriteString(where.condition)
 	}
+
+	if sq.groupBy != "" {
+		q.WriteString(" group by ")
+		q.WriteString(sq.groupBy)
+	}
+
+	for i, having := range sq.havings {
+		if i == 0 {
+			q.WriteString(" having ")
+		} else {
+			q.WriteString(having.conjunction)
+		}
+		q.WriteString(having.condition)
+	}
+
 	if sq.order != "" {
 		q.WriteString(" order by ")
 		q.WriteString(sq.order)
