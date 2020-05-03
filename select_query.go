@@ -15,16 +15,18 @@ type where struct {
 
 // SelectQuery holds information for a select query.
 type SelectQuery struct {
-	db     *DB
-	model  *model
-	fields []string
-	joins  []string
-	wheres []*where
-	args   []interface{}
-	order  string
-	many   bool
-	limit  int64
-	offset int64
+	db         *DB
+	model      *model
+	fields     []string
+	joins      []string
+	wheres     []*where
+	whereArgs  []interface{}
+	havings    []string
+	havingArgs []interface{}
+	order      string
+	many       bool
+	limit      int64
+	offset     int64
 }
 
 // Join joins another table to this query.
@@ -40,7 +42,14 @@ func (sq *SelectQuery) Where(condition string, args ...interface{}) *SelectQuery
 		condition:   condition,
 	}
 	sq.wheres = append(sq.wheres, w)
-	sq.args = append(sq.args, args...)
+	sq.whereArgs = append(sq.whereArgs, args...)
+	return sq
+}
+
+// Having specifies which rows will be returned.
+func (sq *SelectQuery) Having(condition string, args ...interface{}) *SelectQuery {
+	// sq.wheres = append(sq.wheres, w)
+	// sq.args = append(sq.args, args...)
 	return sq
 }
 
@@ -51,7 +60,7 @@ func (sq *SelectQuery) OrWhere(condition string, args ...interface{}) *SelectQue
 		condition:   condition,
 	}
 	sq.wheres = append(sq.wheres, w)
-	sq.args = append(sq.args, args...)
+	sq.whereArgs = append(sq.whereArgs, args...)
 	return sq
 }
 
@@ -124,7 +133,7 @@ func (sq *SelectQuery) toOne(out interface{}) error {
 	if !e.IsValid() {
 		return errors.New("out must not be a nil pointer")
 	}
-	rows, err := sq.db.db.Query(sq.String(), sq.args...)
+	rows, err := sq.db.db.Query(sq.String(), sq.whereArgs...)
 	if err != nil {
 		return err
 	}
@@ -150,7 +159,7 @@ func (sq *SelectQuery) toOne(out interface{}) error {
 
 func (sq *SelectQuery) toMany(sliceType reflect.Type, outs interface{}) error {
 	sq.many = true
-	rows, err := sq.db.db.Query(sq.String(), sq.args...)
+	rows, err := sq.db.db.Query(sq.String(), sq.whereArgs...)
 	if err != nil {
 		return err
 	}
@@ -183,7 +192,7 @@ func (sq *SelectQuery) toMany(sliceType reflect.Type, outs interface{}) error {
 
 func (sq *SelectQuery) toManyValues(sliceType reflect.Type, outs interface{}) error {
 	sq.many = true
-	rows, err := sq.db.db.Query(sq.String(), sq.args...)
+	rows, err := sq.db.db.Query(sq.String(), sq.whereArgs...)
 	if err != nil {
 		return err
 	}
