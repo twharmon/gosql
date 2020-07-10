@@ -4,6 +4,31 @@ Query builder with some handy utility functions.
 ## Documentation
 For full documentation see the [godoc](https://godoc.org/github.com/twharmon/gosql) or [GitBook](https://twharmon.gitbook.io/gosql/).
 
+## Examples
+```go
+// Open database and create connection
+sqliteDB, _ := sql.Open("sqlite3", "my-db.sql")
+db := gosql.New(sqliteDB)
+
+// Define a struct that includes a primary key
+type User struct {
+    ID       int `gosql:"primary"`
+    Email    string
+    IsActive bool
+}
+
+// Register all structs corresponding to a table in the database
+db.Register(User{})
+
+// Select a row from the table
+var user User
+db.Select("*").Get(&user)
+
+// Update the row in the table
+user.Email = "somenewemail@example.com"
+db.Update(&user)
+```
+
 ## Benchmarks
 ```
 BenchmarkInsert-4        	    836143 ns/op	     400 B/op	      17 allocs/op
