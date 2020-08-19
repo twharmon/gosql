@@ -10,7 +10,6 @@ type model struct {
 	table             string
 	typ               reflect.Type
 	fields            []string
-	fieldCount        int
 	primaryFieldIndex int
 }
 
@@ -20,9 +19,9 @@ func (m *model) getInsertQuery(v reflect.Value) string {
 	query.WriteString("insert into ")
 	query.WriteString(m.table)
 	query.WriteString(" (")
-	for i := 0; i < m.fieldCount; i++ {
+	for i := 0; i < len(m.fields); i++ {
 		if m.primaryFieldIndex == i && v.Field(i).IsZero() {
-			if i == m.fieldCount-1 {
+			if i == len(m.fields)-1 {
 				query.WriteString(") ")
 				values.WriteString(")")
 			}
@@ -30,10 +29,10 @@ func (m *model) getInsertQuery(v reflect.Value) string {
 		}
 		query.WriteString(m.fields[i])
 		values.WriteString("?")
-		if i == m.fieldCount-1 {
+		if i == len(m.fields)-1 {
 			query.WriteString(") ")
 			values.WriteString(")")
-		} else if m.primaryFieldIndex != i+1 || m.primaryFieldIndex != m.fieldCount-1 {
+		} else if m.primaryFieldIndex != i+1 || m.primaryFieldIndex != len(m.fields)-1 {
 			query.WriteString(", ")
 			values.WriteString(", ")
 		}
@@ -58,13 +57,13 @@ func (m *model) getUpdateQuery() string {
 	query.WriteString("update ")
 	query.WriteString(m.table)
 	query.WriteString(" set ")
-	for i := 0; i < m.fieldCount; i++ {
+	for i := 0; i < len(m.fields); i++ {
 		if m.primaryFieldIndex == i {
 			continue
 		}
 		query.WriteString(m.fields[i])
 		query.WriteString(" = ?")
-		if i < m.fieldCount-1 {
+		if i < len(m.fields)-1 {
 			query.WriteString(", ")
 		}
 	}
@@ -85,7 +84,7 @@ func (m *model) getFieldIndexByName(name string) int {
 
 func (m *model) getArgs(v reflect.Value) []interface{} {
 	var args []interface{}
-	for i := 0; i < m.fieldCount; i++ {
+	for i := 0; i < len(m.fields); i++ {
 		f := v.Field(i)
 		if m.primaryFieldIndex == i && f.IsZero() {
 			continue
@@ -96,11 +95,11 @@ func (m *model) getArgs(v reflect.Value) []interface{} {
 }
 
 func (m *model) getArgsPrimaryLast(v reflect.Value) []interface{} {
-	args := make([]interface{}, m.fieldCount)
+	args := make([]interface{}, len(m.fields))
 	var primArg interface{}
 	i := 0
 	for {
-		if i == m.fieldCount {
+		if i == len(m.fields) {
 			break
 		}
 		arg := v.Field(i).Interface()
@@ -115,6 +114,6 @@ func (m *model) getArgsPrimaryLast(v reflect.Value) []interface{} {
 		}
 		i++
 	}
-	args[m.fieldCount-1] = primArg
+	args[len(m.fields)-1] = primArg
 	return args
 }

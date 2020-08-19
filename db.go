@@ -51,7 +51,6 @@ func (db *DB) register(s interface{}) error {
 	if err := db.mustBeValid(m); err != nil {
 		return err
 	}
-	m.fieldCount = len(m.fields)
 	db.models[m.name] = m
 	return nil
 }
