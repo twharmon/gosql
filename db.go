@@ -75,8 +75,8 @@ func (db *DB) mustBeValid(m *model) error {
 	if db.models[m.name] != nil {
 		return fmt.Errorf("model %s found more than once", m.name)
 	}
-	if m.primaryFieldIndecies == nil {
-		return fmt.Errorf("model %s must have one and only one field tagged `gosql:\"primary\"`", m.name)
+	if len(m.primaryFieldIndecies) == 0 {
+		return fmt.Errorf("model %s must have at least one field tagged `gosql:\"primary\"`", m.name)
 	}
 	return nil
 }
