@@ -36,7 +36,7 @@ func (db *DB) register(s interface{}) error {
 	m.typ = typ
 	m.name = m.typ.Name()
 	m.table = toSnakeCase(m.name)
-	m.primaryFieldIndex = -1
+	m.primaryFieldIndecies = nil
 	for i := 0; i < m.typ.NumField(); i++ {
 		f := m.typ.Field(i)
 		tag, ok := f.Tag.Lookup("gosql")
@@ -44,14 +44,13 @@ func (db *DB) register(s interface{}) error {
 			continue
 		}
 		if ok && tag == "primary" {
-			m.primaryFieldIndex = i
+			m.primaryFieldIndecies = append(m.primaryFieldIndecies, i)
 		}
 		m.fields = append(m.fields, toSnakeCase(f.Name))
 	}
 	if err := db.mustBeValid(m); err != nil {
 		return err
 	}
-	m.fieldCount = len(m.fields)
 	db.models[m.name] = m
 	return nil
 }
@@ -76,8 +75,8 @@ func (db *DB) mustBeValid(m *model) error {
 	if db.models[m.name] != nil {
 		return fmt.Errorf("model %s found more than once", m.name)
 	}
-	if m.primaryFieldIndex < 0 {
-		return fmt.Errorf("model %s must have one and only one field tagged `gosql:\"primary\"`", m.name)
+	if len(m.primaryFieldIndecies) == 0 {
+		return fmt.Errorf("model %s must have at least one field tagged `gosql:\"primary\"`", m.name)
 	}
 	return nil
 }
@@ -114,7 +113,11 @@ func (db *DB) Delete(obj interface{}) (sql.Result, error) {
 		return nil, err
 	}
 	v := reflect.ValueOf(obj).Elem()
-	return db.db.Exec(m.getDeleteQuery(), v.Field(m.primaryFieldIndex).Interface())
+	var inserts []interface{}
+	for _, i := range m.primaryFieldIndecies {
+		inserts = append(inserts, v.Field(i).Interface())
+	}
+	return db.db.Exec(m.getDeleteQuery(), inserts...)
 }
 
 // Exec is a wrapper around sql.DB.Exec().

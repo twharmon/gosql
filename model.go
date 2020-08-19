@@ -6,12 +6,20 @@ import (
 )
 
 type model struct {
-	name              string
-	table             string
-	typ               reflect.Type
-	fields            []string
-	fieldCount        int
-	primaryFieldIndex int
+	name                 string
+	table                string
+	typ                  reflect.Type
+	fields               []string
+	primaryFieldIndecies []int
+}
+
+func isIntIn(i int, arr []int) bool {
+	for _, arrInt := range arr {
+		if arrInt == i {
+			return true
+		}
+	}
+	return false
 }
 
 func (m *model) getInsertQuery(v reflect.Value) string {
@@ -20,9 +28,9 @@ func (m *model) getInsertQuery(v reflect.Value) string {
 	query.WriteString("insert into ")
 	query.WriteString(m.table)
 	query.WriteString(" (")
-	for i := 0; i < m.fieldCount; i++ {
-		if m.primaryFieldIndex == i && v.Field(i).IsZero() {
-			if i == m.fieldCount-1 {
+	for i := 0; i < len(m.fields); i++ {
+		if isIntIn(i, m.primaryFieldIndecies) && v.Field(i).IsZero() {
+			if i == len(m.fields)-1 {
 				query.WriteString(") ")
 				values.WriteString(")")
 			}
@@ -30,10 +38,10 @@ func (m *model) getInsertQuery(v reflect.Value) string {
 		}
 		query.WriteString(m.fields[i])
 		values.WriteString("?")
-		if i == m.fieldCount-1 {
+		if i == len(m.fields)-1 {
 			query.WriteString(") ")
 			values.WriteString(")")
-		} else if m.primaryFieldIndex != i+1 || m.primaryFieldIndex != m.fieldCount-1 {
+		} else if !isIntIn(i+1, m.primaryFieldIndecies) || !isIntIn(len(m.fields)-1, m.primaryFieldIndecies) {
 			query.WriteString(", ")
 			values.WriteString(", ")
 		}
@@ -48,8 +56,13 @@ func (m *model) getDeleteQuery() string {
 	query.WriteString("delete from ")
 	query.WriteString(m.table)
 	query.WriteString(" where ")
-	query.WriteString(m.fields[m.primaryFieldIndex])
-	query.WriteString(" = ?")
+	for i, index := range m.primaryFieldIndecies {
+		query.WriteString(m.fields[index])
+		query.WriteString(" = ?")
+		if i < len(m.primaryFieldIndecies)-1 {
+			query.WriteString(" and ")
+		}
+	}
 	return query.String()
 }
 
@@ -58,19 +71,24 @@ func (m *model) getUpdateQuery() string {
 	query.WriteString("update ")
 	query.WriteString(m.table)
 	query.WriteString(" set ")
-	for i := 0; i < m.fieldCount; i++ {
-		if m.primaryFieldIndex == i {
+	for i := 0; i < len(m.fields); i++ {
+		if isIntIn(i, m.primaryFieldIndecies) {
 			continue
 		}
 		query.WriteString(m.fields[i])
 		query.WriteString(" = ?")
-		if i < m.fieldCount-1 {
+		if i < len(m.fields)-1 {
 			query.WriteString(", ")
 		}
 	}
 	query.WriteString(" where ")
-	query.WriteString(m.fields[m.primaryFieldIndex])
-	query.WriteString(" = ?")
+	for i, index := range m.primaryFieldIndecies {
+		query.WriteString(m.fields[index])
+		query.WriteString(" = ?")
+		if i < len(m.primaryFieldIndecies)-1 {
+			query.WriteString(" and ")
+		}
+	}
 	return query.String()
 }
 
@@ -85,9 +103,9 @@ func (m *model) getFieldIndexByName(name string) int {
 
 func (m *model) getArgs(v reflect.Value) []interface{} {
 	var args []interface{}
-	for i := 0; i < m.fieldCount; i++ {
+	for i := 0; i < len(m.fields); i++ {
 		f := v.Field(i)
-		if m.primaryFieldIndex == i && f.IsZero() {
+		if isIntIn(i, m.primaryFieldIndecies) && f.IsZero() {
 			continue
 		}
 		args = append(args, f.Interface())
@@ -96,25 +114,21 @@ func (m *model) getArgs(v reflect.Value) []interface{} {
 }
 
 func (m *model) getArgsPrimaryLast(v reflect.Value) []interface{} {
-	args := make([]interface{}, m.fieldCount)
-	var primArg interface{}
+	var args []interface{}
+	var primaryArgs []interface{}
 	i := 0
 	for {
-		if i == m.fieldCount {
+		if i == len(m.fields) {
 			break
 		}
 		arg := v.Field(i).Interface()
-		if m.primaryFieldIndex == i {
-			primArg = arg
+		if isIntIn(i, m.primaryFieldIndecies) {
+			primaryArgs = append(primaryArgs, arg)
 		} else {
-			if primArg == nil {
-				args[i] = arg
-			} else {
-				args[i-1] = arg
-			}
+			args = append(args, arg)
 		}
 		i++
 	}
-	args[m.fieldCount-1] = primArg
+	args = append(args, primaryArgs...)
 	return args
 }
