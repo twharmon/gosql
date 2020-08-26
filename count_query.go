@@ -1,6 +1,7 @@
 package gosql
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -41,7 +42,13 @@ func (cq *CountQuery) OrWhere(condition string, args ...interface{}) *CountQuery
 
 // Join joins another table to this query.
 func (cq *CountQuery) Join(join string) *CountQuery {
-	cq.joins = append(cq.joins, join)
+	cq.joins = append(cq.joins, fmt.Sprintf(" join %s", join))
+	return cq
+}
+
+// LeftJoin joins another table to this query.
+func (cq *CountQuery) LeftJoin(join string) *CountQuery {
+	cq.joins = append(cq.joins, fmt.Sprintf(" left join %s", join))
 	return cq
 }
 
@@ -63,7 +70,6 @@ func (cq *CountQuery) String() string {
 	q.WriteString(cq.table)
 
 	for _, join := range cq.joins {
-		q.WriteString(" join ")
 		q.WriteString(join)
 	}
 	for i, where := range cq.wheres {

@@ -2,6 +2,7 @@ package gosql
 
 import (
 	"database/sql"
+	"fmt"
 	"strings"
 )
 
@@ -38,7 +39,13 @@ func (dq *DeleteQuery) OrWhere(condition string, args ...interface{}) *DeleteQue
 
 // Join joins another table to this query.
 func (dq *DeleteQuery) Join(join string) *DeleteQuery {
-	dq.joins = append(dq.joins, join)
+	dq.joins = append(dq.joins, fmt.Sprintf(" join %s", join))
+	return dq
+}
+
+// LeftJoin joins another table to this query.
+func (dq *DeleteQuery) LeftJoin(join string) *DeleteQuery {
+	dq.joins = append(dq.joins, fmt.Sprintf(" left join %s", join))
 	return dq
 }
 
@@ -53,7 +60,6 @@ func (dq *DeleteQuery) String() string {
 	q.WriteString("delete from ")
 	q.WriteString(dq.table)
 	for _, join := range dq.joins {
-		q.WriteString(" join ")
 		q.WriteString(join)
 	}
 	for i, where := range dq.wheres {

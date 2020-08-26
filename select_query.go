@@ -37,7 +37,13 @@ type SelectQuery struct {
 
 // Join joins another table to this query.
 func (sq *SelectQuery) Join(join string) *SelectQuery {
-	sq.joins = append(sq.joins, join)
+	sq.joins = append(sq.joins, fmt.Sprintf(" join %s", join))
+	return sq
+}
+
+// LeftJoin joins another table to this query.
+func (sq *SelectQuery) LeftJoin(join string) *SelectQuery {
+	sq.joins = append(sq.joins, fmt.Sprintf(" left join %s", join))
 	return sq
 }
 
@@ -268,7 +274,6 @@ func (sq *SelectQuery) String() string {
 	q.WriteString(" from ")
 	q.WriteString(sq.model.table)
 	for _, join := range sq.joins {
-		q.WriteString(" join ")
 		q.WriteString(join)
 	}
 	for i, where := range sq.wheres {
