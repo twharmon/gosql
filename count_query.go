@@ -6,12 +6,15 @@ import (
 
 // CountQuery is a query for counting rows in a table.
 type CountQuery struct {
-	db        *DB
-	count     string
-	table     string
-	joins     []string
-	wheres    []*where
-	whereArgs []interface{}
+	db         *DB
+	count      string
+	table      string
+	joins      []string
+	wheres     []*where
+	whereArgs  []interface{}
+	havings    []*having
+	havingArgs []interface{}
+	groupBy    string
 }
 
 // Where specifies which rows will be returned.
@@ -71,5 +74,45 @@ func (cq *CountQuery) String() string {
 		}
 		q.WriteString(where.condition)
 	}
+	if cq.groupBy != "" {
+		q.WriteString(" group by ")
+		q.WriteString(cq.groupBy)
+	}
+	for i, having := range cq.havings {
+		if i == 0 {
+			q.WriteString(" having ")
+		} else {
+			q.WriteString(having.conjunction)
+		}
+		q.WriteString(having.condition)
+	}
 	return q.String()
+}
+
+// Having specifies which rows will be returned.
+func (cq *CountQuery) Having(condition string, args ...interface{}) *CountQuery {
+	h := &having{
+		conjunction: " and ",
+		condition:   condition,
+	}
+	cq.havings = append(cq.havings, h)
+	cq.havingArgs = append(cq.havingArgs, args...)
+	return cq
+}
+
+// OrHaving specifies which rows will be returned.
+func (cq *CountQuery) OrHaving(condition string, args ...interface{}) *CountQuery {
+	h := &having{
+		conjunction: " or ",
+		condition:   condition,
+	}
+	cq.havings = append(cq.havings, h)
+	cq.havingArgs = append(cq.havingArgs, args...)
+	return cq
+}
+
+// GroupBy specifies how to group the results.
+func (cq *CountQuery) GroupBy(bys ...string) *CountQuery {
+	cq.groupBy = strings.Join(bys, ", ")
+	return cq
 }
