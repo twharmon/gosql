@@ -82,8 +82,13 @@ func (db *DB) mustBeValid(m *model) error {
 }
 
 // Begin starts a transaction.
-func (db *DB) Begin() (*sql.Tx, error) {
-	return db.db.Begin()
+func (db *DB) Begin() (*Tx, error) {
+	sqlTx, err := db.db.Begin()
+	tx := Tx{
+		tx: sqlTx,
+		db: db,
+	}
+	return &tx, err
 }
 
 // Insert insterts a row in the database.
