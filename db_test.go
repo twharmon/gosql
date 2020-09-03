@@ -94,6 +94,22 @@ func TestInsertWithAllFieldsPrimary(t *testing.T) {
 	check(t, mock.ExpectationsWereMet())
 }
 
+func TestInsertWith1stAndLastFieldsPrimary(t *testing.T) {
+	db, mock, err := getMockDB()
+	check(t, err)
+	type T struct {
+		ID    int `gosql:"primary"`
+		Email string
+		Name  string `gosql:"primary"`
+	}
+	check(t, db.Register(T{}))
+	model := T{5, "", "foo"}
+	mock.ExpectExec(`^insert into t \(id, email, name\) values \(\?, \?, \?\)$`).WithArgs(model.ID, model.Email, model.Name).WillReturnResult(sqlmock.NewResult(0, 1))
+	_, err = db.Insert(&model)
+	check(t, err)
+	check(t, mock.ExpectationsWereMet())
+}
+
 func ExampleDB_Insert() {
 	os.Remove("/tmp/foo.db")
 	sqliteDB, _ := sql.Open("sqlite3", "/tmp/foo.db")
