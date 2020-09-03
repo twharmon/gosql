@@ -41,7 +41,9 @@ func (m *model) getInsertQuery(v reflect.Value) string {
 		if i == len(m.fields)-1 {
 			query.WriteString(") ")
 			values.WriteString(")")
-		} else if !isIntIn(i+1, m.primaryFieldIndecies) || !isIntIn(len(m.fields)-1, m.primaryFieldIndecies) || !v.Field(i).IsZero() {
+			continue
+		}
+		if !isIntIn(i+1, m.primaryFieldIndecies) || !v.Field(i+1).IsZero() {
 			query.WriteString(", ")
 			values.WriteString(", ")
 		}
