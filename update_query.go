@@ -9,12 +9,18 @@ import (
 // UpdateQuery holds information for an update query.
 type UpdateQuery struct {
 	db        *DB
+	execer    Execer
 	table     string
 	joins     []string
 	wheres    []*where
 	sets      []string
 	whereArgs []interface{}
 	setArgs   []interface{}
+}
+
+// Execer .
+type Execer interface {
+	Exec(query string, args ...interface{}) (sql.Result, error)
 }
 
 // Where specifies which rows will be returned.
@@ -62,7 +68,7 @@ func (uq *UpdateQuery) LeftJoin(join string) *UpdateQuery {
 func (uq *UpdateQuery) Exec() (sql.Result, error) {
 	args := uq.setArgs
 	args = append(args, uq.whereArgs...)
-	return uq.db.db.Exec(uq.String(), args...)
+	return uq.execer.Exec(uq.String(), args...)
 }
 
 // String returns the string representation of UpdateQuery.

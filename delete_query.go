@@ -9,6 +9,7 @@ import (
 // DeleteQuery is a query for deleting rows from a table.
 type DeleteQuery struct {
 	db        *DB
+	execer    Execer
 	table     string
 	joins     []string
 	wheres    []*where
@@ -51,7 +52,7 @@ func (dq *DeleteQuery) LeftJoin(join string) *DeleteQuery {
 
 // Exec executes the query.
 func (dq *DeleteQuery) Exec() (sql.Result, error) {
-	return dq.db.db.Exec(dq.String(), dq.whereArgs...)
+	return dq.execer.Exec(dq.String(), dq.whereArgs...)
 }
 
 // String returns the string representation of DeleteQuery.
