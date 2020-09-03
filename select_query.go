@@ -1,6 +1,7 @@
 package gosql
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"reflect"
@@ -18,9 +19,15 @@ type having struct {
 	condition   string
 }
 
+// Querier .
+type Querier interface {
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+}
+
 // SelectQuery holds information for a select query.
 type SelectQuery struct {
 	db         *DB
+	querier    Querier
 	model      *model
 	fields     []string
 	joins      []string
@@ -168,7 +175,7 @@ func (sq *SelectQuery) toOne(out interface{}) error {
 	}
 	args := sq.whereArgs
 	args = append(args, sq.havingArgs...)
-	rows, err := sq.db.db.Query(sq.String(), args...)
+	rows, err := sq.querier.Query(sq.String(), args...)
 	if err != nil {
 		return err
 	}
@@ -196,7 +203,7 @@ func (sq *SelectQuery) toMany(sliceType reflect.Type, outs interface{}) error {
 	sq.many = true
 	args := sq.whereArgs
 	args = append(args, sq.havingArgs...)
-	rows, err := sq.db.db.Query(sq.String(), args...)
+	rows, err := sq.querier.Query(sq.String(), args...)
 	if err != nil {
 		return err
 	}
@@ -231,7 +238,7 @@ func (sq *SelectQuery) toManyValues(sliceType reflect.Type, outs interface{}) er
 	sq.many = true
 	args := sq.whereArgs
 	args = append(args, sq.havingArgs...)
-	rows, err := sq.db.db.Query(sq.String(), args...)
+	rows, err := sq.querier.Query(sq.String(), args...)
 	if err != nil {
 		return err
 	}

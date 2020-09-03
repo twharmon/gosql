@@ -139,6 +139,7 @@ func (db *DB) QueryRow(query string, args ...interface{}) *sql.Row {
 func (db *DB) Select(fields ...string) *SelectQuery {
 	sq := new(SelectQuery)
 	sq.db = db
+	sq.querier = db.db
 	sq.fields = fields
 	return sq
 }
@@ -147,6 +148,7 @@ func (db *DB) Select(fields ...string) *SelectQuery {
 func (db *DB) ManualUpdate(table string) *UpdateQuery {
 	uq := new(UpdateQuery)
 	uq.db = db
+	uq.execer = db.db
 	uq.table = table
 	return uq
 }
@@ -155,6 +157,7 @@ func (db *DB) ManualUpdate(table string) *UpdateQuery {
 func (db *DB) Count(table string, count string) *CountQuery {
 	cq := new(CountQuery)
 	cq.db = db
+	cq.queryRower = db.db
 	cq.table = table
 	cq.count = count
 	return cq
@@ -164,6 +167,7 @@ func (db *DB) Count(table string, count string) *CountQuery {
 func (db *DB) ManualDelete(table string) *DeleteQuery {
 	dq := new(DeleteQuery)
 	dq.db = db
+	dq.execer = db.db
 	dq.table = table
 	return dq
 }

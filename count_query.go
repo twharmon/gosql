@@ -1,13 +1,20 @@
 package gosql
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 )
 
+// QueryRower .
+type QueryRower interface {
+	QueryRow(query string, args ...interface{}) *sql.Row
+}
+
 // CountQuery is a query for counting rows in a table.
 type CountQuery struct {
 	db         *DB
+	queryRower QueryRower
 	count      string
 	table      string
 	joins      []string
@@ -55,7 +62,7 @@ func (cq *CountQuery) LeftJoin(join string) *CountQuery {
 // Exec executes the query.
 func (cq *CountQuery) Exec() (int64, error) {
 	var count int64
-	row := cq.db.db.QueryRow(cq.String(), cq.whereArgs...)
+	row := cq.queryRower.QueryRow(cq.String(), cq.whereArgs...)
 	err := row.Scan(&count)
 	return count, err
 }
