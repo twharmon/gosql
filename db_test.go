@@ -40,6 +40,38 @@ func TestUpdate(t *testing.T) {
 	check(t, mock.ExpectationsWereMet())
 }
 
+func TestUpdateThreeFields(t *testing.T) {
+	db, mock, err := getMockDB()
+	check(t, err)
+	type T struct {
+		ID    int `gosql:"primary"`
+		Name  string
+		Email string
+	}
+	check(t, db.Register(T{}))
+	updateModel := T{5, "foo", "foo@example.com"}
+	mock.ExpectExec(`^update t set name = \?, email = \? where id = \?$`).WithArgs(updateModel.Name, updateModel.Email, updateModel.ID).WillReturnResult(sqlmock.NewResult(0, 1))
+	_, err = db.Update(&updateModel)
+	check(t, err)
+	check(t, mock.ExpectationsWereMet())
+}
+
+func TestUpdateThreeFieldsTwoPrimaries(t *testing.T) {
+	db, mock, err := getMockDB()
+	check(t, err)
+	type T struct {
+		ID    int `gosql:"primary"`
+		Name  string
+		Email string `gosql:"primary"`
+	}
+	check(t, db.Register(T{}))
+	updateModel := T{5, "foo", "foo@example.com"}
+	mock.ExpectExec(`^update t set name = \? where id = \? and email = \?$`).WithArgs(updateModel.Name, updateModel.ID, updateModel.Email).WillReturnResult(sqlmock.NewResult(0, 1))
+	_, err = db.Update(&updateModel)
+	check(t, err)
+	check(t, mock.ExpectationsWereMet())
+}
+
 func TestBegin(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)

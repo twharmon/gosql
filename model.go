@@ -79,7 +79,7 @@ func (m *model) getUpdateQuery() string {
 		}
 		query.WriteString(m.fields[i])
 		query.WriteString(" = ?")
-		if i < len(m.fields)-1 {
+		if i < len(m.fields)-1 && !isIntIn(i+1, m.primaryFieldIndecies) {
 			query.WriteString(", ")
 		}
 	}
