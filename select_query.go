@@ -189,7 +189,11 @@ func (sq *SelectQuery) toOne(out interface{}) error {
 	for rows.Next() {
 		dests := make([]interface{}, fieldCount)
 		for j := 0; j < fieldCount; j++ {
-			dests[j] = e.Field(sq.model.getFieldIndexByName(columns[j])).Addr().Interface()
+			fieldIdx := sq.model.getFieldIndexByName(columns[j])
+			if fieldIdx < 0 {
+				return fmt.Errorf("no field for column %s", columns[j])
+			}
+			dests[j] = e.Field(fieldIdx).Addr().Interface()
 		}
 		if err := rows.Scan(dests...); err != nil {
 			return err
@@ -218,6 +222,9 @@ func (sq *SelectQuery) toMany(sliceType reflect.Type, outs interface{}) error {
 	fieldIndecies := make([]int, fieldCount)
 	for j := 0; j < fieldCount; j++ {
 		fieldIndecies[j] = sq.model.getFieldIndexByName(columns[j])
+		if fieldIndecies[j] < 0 {
+			return fmt.Errorf("no field for column %s", columns[j])
+		}
 	}
 	dests := make([]interface{}, fieldCount)
 	for rows.Next() {
@@ -253,6 +260,9 @@ func (sq *SelectQuery) toManyValues(sliceType reflect.Type, outs interface{}) er
 	fieldIndecies := make([]int, fieldCount)
 	for j := 0; j < fieldCount; j++ {
 		fieldIndecies[j] = sq.model.getFieldIndexByName(columns[j])
+		if fieldIndecies[j] < 0 {
+			return fmt.Errorf("no field for column %s", columns[j])
+		}
 	}
 	dests := make([]interface{}, fieldCount)
 	newOut := newOuts.Index(0)

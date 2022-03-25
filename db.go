@@ -22,14 +22,17 @@ func (db *DB) register(typ reflect.Type) error {
 	m.primaryFieldIndecies = nil
 	for i := 0; i < m.typ.NumField(); i++ {
 		f := m.typ.Field(i)
-		tag, ok := f.Tag.Lookup("gosql")
-		if ok && tag == "-" {
-			continue
-		}
-		if ok && tag == "primary" {
+		if tag, ok := f.Tag.Lookup("idx"); ok && tag == "primary" {
 			m.primaryFieldIndecies = append(m.primaryFieldIndecies, i)
 		}
-		m.fields = append(m.fields, toSnakeCase(f.Name))
+		if tag, ok := f.Tag.Lookup("col"); ok {
+			if tag == "-" {
+				continue
+			}
+			m.fields = append(m.fields, tag)
+		} else {
+			m.fields = append(m.fields, toSnakeCase(f.Name))
+		}
 	}
 	if err := db.mustBeValid(m); err != nil {
 		return err
@@ -60,7 +63,7 @@ func (db *DB) mustBeValid(m *model) error {
 		return fmt.Errorf("model %s found more than once", m.name)
 	}
 	if len(m.primaryFieldIndecies) == 0 {
-		return fmt.Errorf("model %s must have at least one field tagged `gosql:\"primary\"`", m.name)
+		return fmt.Errorf("model %s must have at least one field tagged `idx:\"primary\"`", m.name)
 	}
 	return nil
 }

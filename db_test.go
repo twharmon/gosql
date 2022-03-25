@@ -15,7 +15,7 @@ func TestDelete(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID int `gosql:"primary"`
+		ID int `idx:"primary"`
 	}
 	deleteModel := T{5}
 	mock.ExpectExec(`^delete from t where id = \?$`).WithArgs(deleteModel.ID).WillReturnResult(sqlmock.NewResult(0, 1))
@@ -28,7 +28,7 @@ func TestUpdate(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	updateModel := T{5, "foo"}
@@ -42,7 +42,7 @@ func TestUpdateThreeFields(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID    int `gosql:"primary"`
+		ID    int `idx:"primary"`
 		Name  string
 		Email string
 	}
@@ -57,9 +57,9 @@ func TestUpdateThreeFieldsTwoPrimaries(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID    int `gosql:"primary"`
+		ID    int `idx:"primary"`
 		Name  string
-		Email string `gosql:"primary"`
+		Email string `idx:"primary"`
 	}
 	updateModel := T{5, "foo", "foo@example.com"}
 	mock.ExpectExec(`^update t set name = \? where id = \? and email = \?$`).WithArgs(updateModel.Name, updateModel.ID, updateModel.Email).WillReturnResult(sqlmock.NewResult(0, 1))
@@ -81,7 +81,7 @@ func TestInsert(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	insertModel := T{Name: "foo"}
@@ -95,7 +95,7 @@ func TestInsertWithPrimary(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	insertModelWithPrimary := T{5, "foo"}
@@ -109,8 +109,8 @@ func TestInsertWithAllFieldsPrimary(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int    `gosql:"primary"`
-		Name string `gosql:"primary"`
+		ID   int    `idx:"primary"`
+		Name string `idx:"primary"`
 	}
 	model := T{5, "foo"}
 	mock.ExpectExec(`^insert into t \(id, name\) values \(\?, \?\)$`).WithArgs(model.ID, model.Name).WillReturnResult(sqlmock.NewResult(0, 1))
@@ -123,12 +123,27 @@ func TestInsertWith1stAndLastFieldsPrimary(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID    int `gosql:"primary"`
+		ID    int `idx:"primary"`
 		Email string
-		Name  string `gosql:"primary"`
+		Name  string `idx:"primary"`
 	}
 	model := T{5, "", "foo"}
 	mock.ExpectExec(`^insert into t \(id, email, name\) values \(\?, \?, \?\)$`).WithArgs(model.ID, model.Email, model.Name).WillReturnResult(sqlmock.NewResult(0, 1))
+	_, err = db.Insert(&model)
+	check(t, err)
+	check(t, mock.ExpectationsWereMet())
+}
+
+func TestInsertWithOmittedField(t *testing.T) {
+	db, mock, err := getMockDB()
+	check(t, err)
+	type T struct {
+		ID    int `idx:"primary"`
+		Email string
+		Name  string `col:"-"`
+	}
+	model := T{5, "", "foo"}
+	mock.ExpectExec(`^insert into t \(id, email\) values \(\?, \?\)$`).WithArgs(model.ID, model.Email).WillReturnResult(sqlmock.NewResult(0, 1))
 	_, err = db.Insert(&model)
 	check(t, err)
 	check(t, mock.ExpectationsWereMet())
@@ -140,7 +155,7 @@ func ExampleDB_Insert() {
 	sqliteDB.Exec("create table user (id integer not null primary key, name text); delete from user")
 	db := gosql.New(sqliteDB)
 	type User struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	db.Insert(&User{Name: "Gopher"})
@@ -156,7 +171,7 @@ func ExampleDB_Update() {
 	sqliteDB.Exec("create table user (id integer not null primary key, name text, email text); delete from user")
 	db := gosql.New(sqliteDB)
 	type User struct {
-		ID    int `gosql:"primary"`
+		ID    int `idx:"primary"`
 		Name  string
 		Email string
 	}
@@ -177,7 +192,7 @@ func ExampleDB_Delete() {
 	sqliteDB.Exec("create table user (id integer not null primary key, name text); delete from user")
 	db := gosql.New(sqliteDB)
 	type User struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	user := User{ID: 5, Name: "Gopher"}
@@ -192,7 +207,7 @@ func ExampleDB_Delete() {
 func BenchmarkInsert(b *testing.B) {
 	db := getSQLiteDB(b, "create table user (id integer not null primary key, name text); delete from user")
 	type User struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	user := User{Name: "Gopher"}
@@ -206,7 +221,7 @@ func BenchmarkInsert(b *testing.B) {
 func BenchmarkUpdate(b *testing.B) {
 	db := getSQLiteDB(b, "create table user (id integer not null primary key, name text); delete from user")
 	type User struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	user := User{Name: "Gopher"}
@@ -222,7 +237,7 @@ func BenchmarkUpdate(b *testing.B) {
 func BenchmarkSelect(b *testing.B) {
 	db := getSQLiteDB(b, "create table user (id integer not null primary key, name text); delete from user")
 	type User struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	user := User{ID: 5, Name: "Gopher"}
@@ -238,7 +253,7 @@ func BenchmarkSelect(b *testing.B) {
 func BenchmarkSelectMany(b *testing.B) {
 	db := getSQLiteDB(b, "create table user (id integer not null primary key, name text); delete from user")
 	type User struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	user := User{Name: "Gopher"}
@@ -256,7 +271,7 @@ func BenchmarkSelectMany(b *testing.B) {
 func BenchmarkSelectManyPtrs(b *testing.B) {
 	db := getSQLiteDB(b, "create table user (id integer not null primary key, name text); delete from user")
 	type User struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	user := User{Name: "Gopher"}

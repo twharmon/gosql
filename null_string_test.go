@@ -11,7 +11,7 @@ func TestNullStringValid(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name gosql.NullString
 	}
 	control := T{
@@ -31,7 +31,7 @@ func TestNullStringNotValid(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name gosql.NullString
 	}
 	control := T{

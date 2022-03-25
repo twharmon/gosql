@@ -12,7 +12,7 @@ func TestNullTimeValid(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name gosql.NullTime
 	}
 	control := T{
@@ -32,7 +32,7 @@ func TestNullTimeNotValid(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name gosql.NullTime
 	}
 	control := T{
