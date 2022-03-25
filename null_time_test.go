@@ -15,7 +15,6 @@ func TestNullTimeValid(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name gosql.NullTime
 	}
-	check(t, db.Register(T{}))
 	control := T{
 		ID:   5,
 		Name: gosql.NullTime{Valid: true, Time: time.Now()},
@@ -36,7 +35,6 @@ func TestNullTimeNotValid(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name gosql.NullTime
 	}
-	check(t, db.Register(T{}))
 	control := T{
 		ID:   5,
 		Name: gosql.NullTime{Valid: false},

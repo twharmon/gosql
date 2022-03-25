@@ -17,25 +17,32 @@ type User struct {
     IsActive bool
 }
 
-// Register all structs corresponding to a table in the database
-db.Register(User{})
+// Insert a row into the table
+db.Insert(&User{
+    ID: 1,
+    Email: "gopher@example.com",
+    IsActive: true,
+})
 
 // Select a row from the table
 var user User
-db.Select("*").Get(&user)
+db.Select("*").Where("id = ?", 1).Get(&user)
 
 // Update the row in the table
-user.Email = "somenewemail@example.com"
+user.Email = "gosql@example.com"
 db.Update(&user)
+
+// Delete the row from the table
+db.Delete(&user)
 ```
 
 ## Benchmarks
 ```
-BenchmarkInsert-4        	    836143 ns/op	     400 B/op	      17 allocs/op
-BenchmarkUpdate-4        	     22923 ns/op	     488 B/op	      18 allocs/op
-BenchmarkSelect-4        	     24934 ns/op	     648 B/op	      26 allocs/op
-BenchmarkSelectMany-4    	    127559 ns/op	    6568 B/op	     328 allocs/op
-BenchmarkSelectManyPtrs-4	    130752 ns/op	    7976 B/op	     428 allocs/op
+BenchmarkInsert-10            	    5427	    205722 ns/op	     455 B/op	      23 allocs/op
+BenchmarkUpdate-10            	   90352	     13026 ns/op	     576 B/op	      27 allocs/op
+BenchmarkSelect-10            	   87805	     13231 ns/op	     768 B/op	      41 allocs/op
+BenchmarkSelectMany-10        	   12111	     98665 ns/op	   10640 B/op	     838 allocs/op
+BenchmarkSelectManyPtrs-10    	   10000	    102568 ns/op	   11248 B/op	     938 allocs/op
 ```
 
 ## Contribute

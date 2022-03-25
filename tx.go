@@ -23,7 +23,7 @@ func (t *Tx) Rollback() error {
 
 // Insert insterts a row in the database.
 func (t *Tx) Insert(obj interface{}) (sql.Result, error) {
-	m, err := t.db.getModelOf(obj)
+	m, err := t.db.getModelOf(reflect.TypeOf(obj))
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (t *Tx) Insert(obj interface{}) (sql.Result, error) {
 
 // Update updates a row in the database.
 func (t *Tx) Update(obj interface{}) (sql.Result, error) {
-	m, err := t.db.getModelOf(obj)
+	m, err := t.db.getModelOf(reflect.TypeOf(obj))
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (t *Tx) Update(obj interface{}) (sql.Result, error) {
 
 // Delete deletes a row from the database.
 func (t *Tx) Delete(obj interface{}) (sql.Result, error) {
-	m, err := t.db.getModelOf(obj)
+	m, err := t.db.getModelOf(reflect.TypeOf(obj))
 	if err != nil {
 		return nil, err
 	}

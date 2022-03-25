@@ -17,7 +17,6 @@ func TestDelete(t *testing.T) {
 	type T struct {
 		ID int `gosql:"primary"`
 	}
-	check(t, db.Register(T{}))
 	deleteModel := T{5}
 	mock.ExpectExec(`^delete from t where id = \?$`).WithArgs(deleteModel.ID).WillReturnResult(sqlmock.NewResult(0, 1))
 	_, err = db.Delete(&deleteModel)
@@ -32,7 +31,6 @@ func TestUpdate(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, db.Register(T{}))
 	updateModel := T{5, "foo"}
 	mock.ExpectExec(`^update t set name = \? where id = \?$`).WithArgs(updateModel.Name, updateModel.ID).WillReturnResult(sqlmock.NewResult(0, 1))
 	_, err = db.Update(&updateModel)
@@ -48,7 +46,6 @@ func TestUpdateThreeFields(t *testing.T) {
 		Name  string
 		Email string
 	}
-	check(t, db.Register(T{}))
 	updateModel := T{5, "foo", "foo@example.com"}
 	mock.ExpectExec(`^update t set name = \?, email = \? where id = \?$`).WithArgs(updateModel.Name, updateModel.Email, updateModel.ID).WillReturnResult(sqlmock.NewResult(0, 1))
 	_, err = db.Update(&updateModel)
@@ -64,7 +61,6 @@ func TestUpdateThreeFieldsTwoPrimaries(t *testing.T) {
 		Name  string
 		Email string `gosql:"primary"`
 	}
-	check(t, db.Register(T{}))
 	updateModel := T{5, "foo", "foo@example.com"}
 	mock.ExpectExec(`^update t set name = \? where id = \? and email = \?$`).WithArgs(updateModel.Name, updateModel.ID, updateModel.Email).WillReturnResult(sqlmock.NewResult(0, 1))
 	_, err = db.Update(&updateModel)
@@ -88,7 +84,6 @@ func TestInsert(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, db.Register(T{}))
 	insertModel := T{Name: "foo"}
 	mock.ExpectExec(`^insert into t \(name\) values \(\?\)$`).WithArgs(insertModel.Name).WillReturnResult(sqlmock.NewResult(0, 1))
 	_, err = db.Insert(&insertModel)
@@ -103,7 +98,6 @@ func TestInsertWithPrimary(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, db.Register(T{}))
 	insertModelWithPrimary := T{5, "foo"}
 	mock.ExpectExec(`^insert into t \(id, name\) values \(\?, \?\)$`).WithArgs(insertModelWithPrimary.ID, insertModelWithPrimary.Name).WillReturnResult(sqlmock.NewResult(0, 1))
 	_, err = db.Insert(&insertModelWithPrimary)
@@ -118,7 +112,6 @@ func TestInsertWithAllFieldsPrimary(t *testing.T) {
 		ID   int    `gosql:"primary"`
 		Name string `gosql:"primary"`
 	}
-	check(t, db.Register(T{}))
 	model := T{5, "foo"}
 	mock.ExpectExec(`^insert into t \(id, name\) values \(\?, \?\)$`).WithArgs(model.ID, model.Name).WillReturnResult(sqlmock.NewResult(0, 1))
 	_, err = db.Insert(&model)
@@ -134,7 +127,6 @@ func TestInsertWith1stAndLastFieldsPrimary(t *testing.T) {
 		Email string
 		Name  string `gosql:"primary"`
 	}
-	check(t, db.Register(T{}))
 	model := T{5, "", "foo"}
 	mock.ExpectExec(`^insert into t \(id, email, name\) values \(\?, \?, \?\)$`).WithArgs(model.ID, model.Email, model.Name).WillReturnResult(sqlmock.NewResult(0, 1))
 	_, err = db.Insert(&model)
@@ -151,7 +143,6 @@ func ExampleDB_Insert() {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	db.Register(User{})
 	db.Insert(&User{Name: "Gopher"})
 	var user User
 	db.Select("*").Get(&user)
@@ -169,7 +160,6 @@ func ExampleDB_Update() {
 		Name  string
 		Email string
 	}
-	db.Register(User{})
 	user := User{ID: 5, Name: "Gopher", Email: "gopher@example.com"}
 	db.Insert(&user)
 	user.Name = "Gofer"
@@ -190,7 +180,6 @@ func ExampleDB_Delete() {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	db.Register(User{})
 	user := User{ID: 5, Name: "Gopher"}
 	db.Insert(&user)
 	db.Delete(&user)
@@ -206,7 +195,6 @@ func BenchmarkInsert(b *testing.B) {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	db.Register(User{})
 	user := User{Name: "Gopher"}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -221,7 +209,6 @@ func BenchmarkUpdate(b *testing.B) {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	db.Register(User{})
 	user := User{Name: "Gopher"}
 	_, err := db.Insert(&user)
 	check(b, err)
@@ -238,7 +225,6 @@ func BenchmarkSelect(b *testing.B) {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	db.Register(User{})
 	user := User{ID: 5, Name: "Gopher"}
 	_, err := db.Insert(&user)
 	check(b, err)
@@ -255,7 +241,6 @@ func BenchmarkSelectMany(b *testing.B) {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	db.Register(User{})
 	user := User{Name: "Gopher"}
 	for i := 0; i < 100; i++ {
 		_, err := db.Insert(&user)
@@ -274,7 +259,6 @@ func BenchmarkSelectManyPtrs(b *testing.B) {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	db.Register(User{})
 	user := User{Name: "Gopher"}
 	for i := 0; i < 100; i++ {
 		_, err := db.Insert(&user)
