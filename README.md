@@ -2,7 +2,7 @@
 Query builder with some handy utility functions.
 
 ## Documentation
-For full documentation see the [pkg.go.dev](https://pkg.go.dev/github.com/twharmon/gosql?tab=doc) or [GitBook](https://twharmon.gitbook.io/gosql/).
+For full documentation see the [pkg.go.dev](https://pkg.go.dev/github.com/twharmon/gosql?tab=doc).
 
 ## Examples
 ```go
