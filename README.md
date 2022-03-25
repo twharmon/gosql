@@ -38,11 +38,11 @@ db.Delete(&user)
 
 ## Benchmarks
 ```
-BenchmarkInsert-10            	    5427	    205722 ns/op	     455 B/op	      23 allocs/op
-BenchmarkUpdate-10            	   90352	     13026 ns/op	     576 B/op	      27 allocs/op
-BenchmarkSelect-10            	   87805	     13231 ns/op	     768 B/op	      41 allocs/op
-BenchmarkSelectMany-10        	   12111	     98665 ns/op	   10640 B/op	     838 allocs/op
-BenchmarkSelectManyPtrs-10    	   10000	    102568 ns/op	   11248 B/op	     938 allocs/op
+BenchmarkInsert-10            	    5637	    209484 ns/op	     448 B/op	      23 allocs/op
+BenchmarkUpdate-10            	   90866	     12887 ns/op	     576 B/op	      27 allocs/op
+BenchmarkSelect-10            	   90318	     13125 ns/op	     768 B/op	      41 allocs/op
+BenchmarkSelectMany-10        	   12435	     96761 ns/op	   10640 B/op	     838 allocs/op
+BenchmarkSelectManyPtrs-10    	   10000	    100512 ns/op	   11248 B/op	     938 allocs/op
 ```
 
 ## Contribute

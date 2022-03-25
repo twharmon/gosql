@@ -15,12 +15,6 @@ type DB struct {
 }
 
 func (db *DB) register(typ reflect.Type) error {
-	for typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-	}
-	if typ.Kind() != reflect.Struct {
-		return fmt.Errorf("you can only use structs, %s found", typ.Kind())
-	}
 	m := new(model)
 	m.typ = typ
 	m.name = m.typ.Name()
