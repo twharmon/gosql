@@ -14,24 +14,7 @@ type DB struct {
 	models map[string]*model
 }
 
-// Register registers structs for database queries.
-func (db *DB) Register(structs ...interface{}) error {
-	for _, s := range structs {
-		if err := db.register(s); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (db *DB) register(s interface{}) error {
-	typ := reflect.TypeOf(s)
-	if typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-	}
-	if typ.Kind() != reflect.Struct {
-		return fmt.Errorf("you can only register structs, %s found", reflect.TypeOf(s).Kind())
-	}
+func (db *DB) register(typ reflect.Type) error {
 	m := new(model)
 	m.typ = typ
 	m.name = m.typ.Name()
@@ -55,18 +38,19 @@ func (db *DB) register(s interface{}) error {
 	return nil
 }
 
-func (db *DB) getModelOf(obj interface{}) (*model, error) {
-	t := reflect.TypeOf(obj)
-	if t.Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("obj must be a pointer to your model struct")
+func (db *DB) getModelOf(t reflect.Type) (*model, error) {
+	for t.Kind() == reflect.Ptr {
+		t = t.Elem()
 	}
-	t = t.Elem()
 	if t.Kind() != reflect.Struct {
 		return nil, fmt.Errorf("obj must be a pointer to your model struct")
 	}
 	m := db.models[t.Name()]
 	if m == nil {
-		return nil, fmt.Errorf("you must first register %s", t.Name())
+		if err := db.register(t); err != nil {
+			return nil, err
+		}
+		m = db.models[t.Name()]
 	}
 	return m, nil
 }
@@ -93,7 +77,7 @@ func (db *DB) Begin() (*Tx, error) {
 
 // Insert insterts a row in the database.
 func (db *DB) Insert(obj interface{}) (sql.Result, error) {
-	m, err := db.getModelOf(obj)
+	m, err := db.getModelOf(reflect.TypeOf(obj))
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +87,7 @@ func (db *DB) Insert(obj interface{}) (sql.Result, error) {
 
 // Update updates a row in the database.
 func (db *DB) Update(obj interface{}) (sql.Result, error) {
-	m, err := db.getModelOf(obj)
+	m, err := db.getModelOf(reflect.TypeOf(obj))
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +97,7 @@ func (db *DB) Update(obj interface{}) (sql.Result, error) {
 
 // Delete deletes a row from the database.
 func (db *DB) Delete(obj interface{}) (sql.Result, error) {
-	m, err := db.getModelOf(obj)
+	m, err := db.getModelOf(reflect.TypeOf(obj))
 	if err != nil {
 		return nil, err
 	}

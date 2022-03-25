@@ -14,7 +14,6 @@ func TestNullStringValid(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name gosql.NullString
 	}
-	check(t, db.Register(T{}))
 	control := T{
 		ID:   5,
 		Name: gosql.NullString{Valid: true, String: "foo"},
@@ -35,7 +34,6 @@ func TestNullStringNotValid(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name gosql.NullString
 	}
-	check(t, db.Register(T{}))
 	control := T{
 		ID:   5,
 		Name: gosql.NullString{Valid: false},

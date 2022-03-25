@@ -13,7 +13,6 @@ func TestSelectQueryOne(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, db.Register(T{}))
 	control := T{
 		ID:   5,
 		Name: "foo",
@@ -34,7 +33,6 @@ func TestSelectQueryMany(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, db.Register(T{}))
 	control := []*T{
 		{
 			ID:   5,
@@ -65,7 +63,6 @@ func TestSelectQueryManyValues(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, db.Register(T{}))
 	control := []T{
 		{
 			ID:   5,
@@ -96,7 +93,6 @@ func TestSelectQueryOrWhere(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, db.Register(T{}))
 	control := T{
 		ID:   5,
 		Name: "foo",
@@ -117,7 +113,6 @@ func TestSelectQueryOrderBy(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, db.Register(T{}))
 	control := T{
 		ID:   5,
 		Name: "foo",
@@ -138,7 +133,6 @@ func TestSelectQueryOffset(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, db.Register(T{}))
 	control := []T{
 		{
 			ID:   6,
@@ -175,7 +169,6 @@ func TestSelectQueryJoin(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, db.Register(T{}))
 	control := T{
 		ID:   5,
 		Name: "foo",
@@ -196,57 +189,11 @@ func TestSelectQueryErrNilPtr(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, db.Register(T{}))
 	var test *T
 	if err := db.Select("*").Get(test); err == nil {
 		t.Fatalf("expected err to be non nil")
 	} else {
 		contains(t, err.Error(), "nil")
-	}
-}
-
-func TestSelectQueryErrNotRegisteredOne(t *testing.T) {
-	db, _, err := getMockDB()
-	check(t, err)
-	type T struct {
-		ID   int `gosql:"primary"`
-		Name string
-	}
-	var test T
-	if err := db.Select("*").Get(&test); err == nil {
-		t.Fatalf("expected err to be non nil")
-	} else {
-		contains(t, err.Error(), "register")
-	}
-}
-
-func TestSelectQueryErrNotRegisteredMany(t *testing.T) {
-	db, _, err := getMockDB()
-	check(t, err)
-	type T struct {
-		ID   int `gosql:"primary"`
-		Name string
-	}
-	var test []*T
-	if err := db.Select("*").Get(&test); err == nil {
-		t.Fatalf("expected err to be non nil")
-	} else {
-		contains(t, err.Error(), "register")
-	}
-}
-
-func TestSelectQueryErrNotRegisteredManyValues(t *testing.T) {
-	db, _, err := getMockDB()
-	check(t, err)
-	type T struct {
-		ID   int `gosql:"primary"`
-		Name string
-	}
-	var test []T
-	if err := db.Select("*").Get(&test); err == nil {
-		t.Fatalf("expected err to be non nil")
-	} else {
-		contains(t, err.Error(), "register")
 	}
 }
 
@@ -287,7 +234,6 @@ func TestSelectQueryErrLimitZeroManyValues(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, db.Register(T{}))
 	var test []T
 	if err := db.Select("*").Get(&test); err == nil {
 		t.Fatalf("expected err to be non nil")
@@ -303,7 +249,6 @@ func TestSelectQueryErrLimitZeroMany(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name string
 	}
-	check(t, db.Register(T{}))
 	var test []*T
 	if err := db.Select("*").Get(&test); err == nil {
 		t.Fatalf("expected err to be non nil")

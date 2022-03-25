@@ -14,7 +14,6 @@ func TestNullInt64Valid(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name gosql.NullInt64
 	}
-	check(t, db.Register(T{}))
 	control := T{
 		ID:   5,
 		Name: gosql.NullInt64{Valid: true, Int64: 5},
@@ -35,7 +34,6 @@ func TestNullInt64NotValid(t *testing.T) {
 		ID   int `gosql:"primary"`
 		Name gosql.NullInt64
 	}
-	check(t, db.Register(T{}))
 	control := T{
 		ID:   5,
 		Name: gosql.NullInt64{Valid: false},

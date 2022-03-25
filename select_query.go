@@ -133,9 +133,10 @@ func (sq *SelectQuery) Get(out interface{}) error {
 	t = t.Elem()
 	switch t.Kind() {
 	case reflect.Struct:
-		sq.model = sq.db.models[t.Name()]
-		if sq.model == nil {
-			return fmt.Errorf("you must first register %s", t.Name())
+		var err error
+		sq.model, err = sq.db.getModelOf(t)
+		if err != nil {
+			return err
 		}
 		return sq.toOne(out)
 	case reflect.Slice:
@@ -146,21 +147,23 @@ func (sq *SelectQuery) Get(out interface{}) error {
 			if el.Kind() != reflect.Struct {
 				break
 			}
-			sq.model = sq.db.models[el.Name()]
-			if sq.model == nil {
-				return fmt.Errorf("you must first register %s", el.Name())
-			}
 			if sq.limit == 0 {
 				return errors.New("limit must be set and not zero when selecting multiple rows")
+			}
+			var err error
+			sq.model, err = sq.db.getModelOf(el)
+			if err != nil {
+				return err
 			}
 			return sq.toMany(t, out)
 		case reflect.Struct:
-			sq.model = sq.db.models[el.Name()]
-			if sq.model == nil {
-				return fmt.Errorf("you must first register %s", el.Name())
-			}
 			if sq.limit == 0 {
 				return errors.New("limit must be set and not zero when selecting multiple rows")
+			}
+			var err error
+			sq.model, err = sq.db.getModelOf(el)
+			if err != nil {
+				return err
 			}
 			return sq.toManyValues(t, out)
 		}
