@@ -12,7 +12,7 @@ db := gosql.New(sqliteDB)
 
 // Define a struct that includes a primary key
 type User struct {
-    ID       int `gosql:"primary"`
+    ID       int `idx:"primary"`
     Email    string
     IsActive bool
 }

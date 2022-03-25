@@ -10,7 +10,7 @@ func TestSelectQueryOne(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	control := T{
@@ -30,7 +30,7 @@ func TestSelectQueryMany(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	control := []*T{
@@ -60,7 +60,7 @@ func TestSelectQueryManyValues(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	control := []T{
@@ -90,7 +90,7 @@ func TestSelectQueryOrWhere(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	control := T{
@@ -110,7 +110,7 @@ func TestSelectQueryOrderBy(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	control := T{
@@ -130,7 +130,7 @@ func TestSelectQueryOffset(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	control := []T{
@@ -166,7 +166,7 @@ func TestSelectQueryJoin(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	control := T{
@@ -186,7 +186,7 @@ func TestSelectQueryErrNilPtr(t *testing.T) {
 	db, _, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	var test *T
@@ -201,7 +201,7 @@ func TestSelectQueryErrNotPtr(t *testing.T) {
 	db, _, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	var test T
@@ -216,7 +216,7 @@ func TestSelectQueryErrNotStructOrSlice(t *testing.T) {
 	db, _, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	var test map[string]string
@@ -231,7 +231,7 @@ func TestSelectQueryErrLimitZeroManyValues(t *testing.T) {
 	db, _, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	var test []T
@@ -246,7 +246,7 @@ func TestSelectQueryErrLimitZeroMany(t *testing.T) {
 	db, _, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name string
 	}
 	var test []*T
@@ -255,4 +255,45 @@ func TestSelectQueryErrLimitZeroMany(t *testing.T) {
 	} else {
 		contains(t, err.Error(), "limit")
 	}
+}
+
+func TestSelectQueryCustomColumn(t *testing.T) {
+	db, mock, err := getMockDB()
+	check(t, err)
+	type T struct {
+		ID   int    `idx:"primary"`
+		Name string `col:"first_name"`
+	}
+	control := T{
+		ID:   5,
+		Name: "foo",
+	}
+	rows := sqlmock.NewRows([]string{"id", "first_name"})
+	rows.AddRow(control.ID, control.Name)
+	mock.ExpectQuery(`^select \* from t where id = \? limit 1$`).WithArgs(control.ID).WillReturnRows(rows)
+	var test T
+	check(t, db.Select("*").Where("id = ?", control.ID).Get(&test))
+	check(t, mock.ExpectationsWereMet())
+	equals(t, control, test)
+}
+
+func TestSelectNoColumn(t *testing.T) {
+	db, mock, err := getMockDB()
+	check(t, err)
+	type T struct {
+		ID   int `idx:"primary"`
+		Name string
+	}
+	control := T{
+		ID:   5,
+		Name: "foo",
+	}
+	rows := sqlmock.NewRows([]string{"id", "unexpected"})
+	rows.AddRow(control.ID, control.Name)
+	mock.ExpectQuery(`^select \* from t where id = \? limit 1$`).WithArgs(control.ID).WillReturnRows(rows)
+	var test T
+	if err := db.Select("*").Where("id = ?", control.ID).Get(&test); err == nil {
+		t.Fatalf("expected err")
+	}
+	check(t, mock.ExpectationsWereMet())
 }

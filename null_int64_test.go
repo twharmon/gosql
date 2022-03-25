@@ -11,7 +11,7 @@ func TestNullInt64Valid(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name gosql.NullInt64
 	}
 	control := T{
@@ -31,7 +31,7 @@ func TestNullInt64NotValid(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
-		ID   int `gosql:"primary"`
+		ID   int `idx:"primary"`
 		Name gosql.NullInt64
 	}
 	control := T{
