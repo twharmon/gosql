@@ -47,9 +47,9 @@ func TestSelectQueryMany(t *testing.T) {
 	for _, c := range control {
 		rows.AddRow(c.ID, c.Name)
 	}
-	mock.ExpectQuery(`^select \* from t limit 10$`).WillReturnRows(rows)
+	mock.ExpectQuery(`^select \* from t$`).WillReturnRows(rows)
 	var test []*T
-	check(t, db.Select("*").Limit(10).Get(&test))
+	check(t, db.Select("*").Get(&test))
 	check(t, mock.ExpectationsWereMet())
 	for i := 0; i < len(control); i++ {
 		equals(t, control[i], test[i])
@@ -57,6 +57,66 @@ func TestSelectQueryMany(t *testing.T) {
 }
 
 func TestSelectQueryManyValues(t *testing.T) {
+	db, mock, err := getMockDB()
+	check(t, err)
+	type T struct {
+		ID   int `idx:"primary"`
+		Name string
+	}
+	control := []T{
+		{
+			ID:   5,
+			Name: "foo",
+		},
+		{
+			ID:   6,
+			Name: "bar",
+		},
+	}
+	rows := sqlmock.NewRows([]string{"id", "name"})
+	for _, c := range control {
+		rows.AddRow(c.ID, c.Name)
+	}
+	mock.ExpectQuery(`^select \* from t$`).WillReturnRows(rows)
+	var test []T
+	check(t, db.Select("*").Get(&test))
+	check(t, mock.ExpectationsWereMet())
+	for i := 0; i < len(control); i++ {
+		equals(t, control[i], test[i])
+	}
+}
+
+func TestSelectQueryManyLimit(t *testing.T) {
+	db, mock, err := getMockDB()
+	check(t, err)
+	type T struct {
+		ID   int `idx:"primary"`
+		Name string
+	}
+	control := []*T{
+		{
+			ID:   5,
+			Name: "foo",
+		},
+		{
+			ID:   6,
+			Name: "bar",
+		},
+	}
+	rows := sqlmock.NewRows([]string{"id", "name"})
+	for _, c := range control {
+		rows.AddRow(c.ID, c.Name)
+	}
+	mock.ExpectQuery(`^select \* from t$`).WillReturnRows(rows)
+	var test []*T
+	check(t, db.Select("*").Get(&test))
+	check(t, mock.ExpectationsWereMet())
+	for i := 0; i < len(control); i++ {
+		equals(t, control[i], test[i])
+	}
+}
+
+func TestSelectQueryManyValuesLimit(t *testing.T) {
 	db, mock, err := getMockDB()
 	check(t, err)
 	type T struct {
@@ -224,36 +284,6 @@ func TestSelectQueryErrNotStructOrSlice(t *testing.T) {
 		t.Fatalf("expected err to be non nil")
 	} else {
 		contains(t, err.Error(), "struct")
-	}
-}
-
-func TestSelectQueryErrLimitZeroManyValues(t *testing.T) {
-	db, _, err := getMockDB()
-	check(t, err)
-	type T struct {
-		ID   int `idx:"primary"`
-		Name string
-	}
-	var test []T
-	if err := db.Select("*").Get(&test); err == nil {
-		t.Fatalf("expected err to be non nil")
-	} else {
-		contains(t, err.Error(), "limit")
-	}
-}
-
-func TestSelectQueryErrLimitZeroMany(t *testing.T) {
-	db, _, err := getMockDB()
-	check(t, err)
-	type T struct {
-		ID   int `idx:"primary"`
-		Name string
-	}
-	var test []*T
-	if err := db.Select("*").Get(&test); err == nil {
-		t.Fatalf("expected err to be non nil")
-	} else {
-		contains(t, err.Error(), "limit")
 	}
 }
 

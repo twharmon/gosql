@@ -147,9 +147,6 @@ func (sq *SelectQuery) Get(out interface{}) error {
 			if el.Kind() != reflect.Struct {
 				break
 			}
-			if sq.limit == 0 {
-				return errors.New("limit must be set and not zero when selecting multiple rows")
-			}
 			var err error
 			sq.model, err = sq.db.getModelOf(el)
 			if err != nil {
@@ -157,9 +154,6 @@ func (sq *SelectQuery) Get(out interface{}) error {
 			}
 			return sq.toMany(t, out)
 		case reflect.Struct:
-			if sq.limit == 0 {
-				return errors.New("limit must be set and not zero when selecting multiple rows")
-			}
 			var err error
 			sq.model, err = sq.db.getModelOf(el)
 			if err != nil {
@@ -215,7 +209,12 @@ func (sq *SelectQuery) toMany(sliceType reflect.Type, outs interface{}) error {
 		return err
 	}
 	defer rows.Close()
-	newOuts := reflect.MakeSlice(sliceType, int(sq.limit), int(sq.limit))
+	var newOuts reflect.Value
+	if sq.limit == 0 {
+		newOuts = reflect.MakeSlice(sliceType, 8, 8)
+	} else {
+		newOuts = reflect.MakeSlice(sliceType, int(sq.limit), int(sq.limit))
+	}
 	i := 0
 	columns, _ := rows.Columns()
 	fieldCount := len(columns)
@@ -228,6 +227,10 @@ func (sq *SelectQuery) toMany(sliceType reflect.Type, outs interface{}) error {
 	}
 	dests := make([]interface{}, fieldCount)
 	for rows.Next() {
+		if newOuts.Len() == i {
+			newOuts.SetCap(newOuts.Len() * 2)
+			newOuts.SetLen(newOuts.Len() * 2)
+		}
 		newOut := newOuts.Index(i)
 		newOut.Set(reflect.New(sq.model.typ))
 		for j := 0; j < fieldCount; j++ {
@@ -253,7 +256,12 @@ func (sq *SelectQuery) toManyValues(sliceType reflect.Type, outs interface{}) er
 		return err
 	}
 	defer rows.Close()
-	newOuts := reflect.MakeSlice(sliceType, int(sq.limit), int(sq.limit))
+	var newOuts reflect.Value
+	if sq.limit == 0 {
+		newOuts = reflect.MakeSlice(sliceType, 8, 8)
+	} else {
+		newOuts = reflect.MakeSlice(sliceType, int(sq.limit), int(sq.limit))
+	}
 	i := 0
 	columns, _ := rows.Columns()
 	fieldCount := len(columns)
@@ -267,6 +275,10 @@ func (sq *SelectQuery) toManyValues(sliceType reflect.Type, outs interface{}) er
 	dests := make([]interface{}, fieldCount)
 	newOut := newOuts.Index(0)
 	for rows.Next() {
+		if newOuts.Len() == i {
+			newOuts.SetCap(newOuts.Len() * 2)
+			newOuts.SetLen(newOuts.Len() * 2)
+		}
 		newOut = newOuts.Index(i)
 		for j := 0; j < fieldCount; j++ {
 			dests[j] = newOut.Field(fieldIndecies[j]).Addr().Interface()
@@ -324,8 +336,10 @@ func (sq *SelectQuery) String() string {
 		q.WriteString(sq.order)
 	}
 	if sq.many {
-		q.WriteString(" limit ")
-		q.WriteString(strconv.FormatInt(sq.limit, 10))
+		if sq.limit > 0 {
+			q.WriteString(" limit ")
+			q.WriteString(strconv.FormatInt(sq.limit, 10))
+		}
 	} else {
 		q.WriteString(" limit 1")
 	}
