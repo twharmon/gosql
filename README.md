@@ -1,4 +1,7 @@
-# GoSQL ![](https://github.com/twharmon/gosql/workflows/Test/badge.svg)
+# GoSQL
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/twharmon/gosql.svg)](https://pkg.go.dev/github.com/twharmon/gosql) ![](https://github.com/twharmon/gosql/workflows/Test/badge.svg) [![](https://goreportcard.com/badge/github.com/twharmon/gosql)](https://goreportcard.com/report/github.com/twharmon/gosql) [![codecov](https://codecov.io/gh/twharmon/gosql/branch/main/graph/badge.svg?token=K0P59TPRAL)](https://codecov.io/gh/twharmon/gosql)
+
 Query builder with some handy utility functions.
 
 ## Documentation
